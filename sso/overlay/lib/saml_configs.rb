@@ -52,18 +52,28 @@ module SamlConfigs
     {
       idp_sso_service_url: value['idp_sso_service_url'],
       idp_slo_service_url: value['idp_slo_service_url'].presence,
+      # idp_cert is required by the settings controller, so SAML responses are
+      # always signature-verified against it (no cert => no validation => forgeable).
       idp_cert: value['idp_cert'].presence,
+      # When set, ruby-saml also validates the assertion Issuer matches the IdP.
       idp_entity_id: value['idp_entity_id'].presence,
-      issuer: value['sp_entity_id'].presence || default_sp_entity_id,
+      sp_entity_id: value['sp_entity_id'].presence || default_sp_entity_id,
       assertion_consumer_service_url: callback_url,
       name_identifier_format: value['name_identifier_format'].presence || DEFAULT_NAME_ID_FORMAT,
+      # Small tolerance for IdP/SP clock skew on assertion timestamp validation.
+      allowed_clock_drift: 30,
+      # Try the configured attribute first, then the common names used by
+      # Authentik / ADFS / Okta (xmlsoap claims URIs), oid, and short forms.
       attribute_statements: {
-        email: [value['email_attribute'].presence || 'email',
-                'urn:oid:0.9.2342.19200300.100.1.3', 'mail'].compact,
-        first_name: [value['first_name_attribute'].presence || 'first_name',
-                     'urn:oid:2.5.4.42', 'givenName'].compact,
-        last_name: [value['last_name_attribute'].presence || 'last_name',
-                    'urn:oid:2.5.4.4', 'sn'].compact
+        email: [value['email_attribute'].presence,
+                'email', 'mail', 'urn:oid:0.9.2342.19200300.100.1.3',
+                'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'].compact,
+        first_name: [value['first_name_attribute'].presence,
+                     'first_name', 'givenName', 'urn:oid:2.5.4.42',
+                     'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'].compact,
+        last_name: [value['last_name_attribute'].presence,
+                    'last_name', 'sn', 'urn:oid:2.5.4.4',
+                    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'].compact
       }
     }.compact
   end

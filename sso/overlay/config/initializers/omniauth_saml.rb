@@ -14,7 +14,7 @@ if defined?(OmniAuth::Strategies::SAML)
       :saml,
       idp_sso_service_url: 'https://example.invalid/sso',
       idp_cert: '',
-      issuer: 'docuseal',
+      sp_entity_id: 'docuseal',
       name_identifier_format: SamlConfigs::DEFAULT_NAME_ID_FORMAT,
       setup: lambda do |env|
         strategy = env['omniauth.strategy']
