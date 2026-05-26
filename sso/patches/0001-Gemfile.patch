@@ -1,0 +1,13 @@
+diff --git a/Gemfile b/Gemfile
+index 7ed8fdeb..9add2e38 100644
+--- a/Gemfile
++++ b/Gemfile
+@@ -26,6 +26,8 @@ gem 'jwt', require: false
+ gem 'lograge'
+ gem 'numo-narray-alt', require: false
+ gem 'oj'
++gem 'omniauth-rails_csrf_protection'
++gem 'omniauth-saml'
+ gem 'onnxruntime', require: false
+ gem 'pagy'
+ gem 'pg', require: false

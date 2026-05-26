@@ -1,0 +1,99 @@
+diff --git a/app/models/user.rb b/app/models/user.rb
+index b80ae769..f04974d5 100644
+--- a/app/models/user.rb
++++ b/app/models/user.rb
+@@ -48,9 +48,15 @@
+ #
+ class User < ApplicationRecord
+   ROLES = [
+-    ADMIN_ROLE = 'admin'
++    ADMIN_ROLE = 'admin',
++    EDITOR_ROLE = 'editor',
++    VIEWER_ROLE = 'viewer',
++    INTEGRATION_ROLE = 'integration'
+   ].freeze
+ 
++  # Roles that can be selected in the UI (excludes system roles like integration)
++  SELECTABLE_ROLES = [ADMIN_ROLE, EDITOR_ROLE, VIEWER_ROLE].freeze
++
+   EMAIL_REGEXP = /[^@;,<>\s]+@[^@;,<>\s]+/
+ 
+   FULL_EMAIL_REGEXP =
+@@ -69,7 +75,8 @@ class User < ApplicationRecord
+   has_many :encrypted_configs, dependent: :destroy, class_name: 'EncryptedUserConfig'
+   has_many :email_messages, dependent: :destroy, foreign_key: :author_id, inverse_of: :author
+ 
+-  devise :two_factor_authenticatable, :recoverable, :rememberable, :validatable, :trackable, :lockable
++  devise :two_factor_authenticatable, :recoverable, :rememberable, :validatable, :trackable, :lockable,
++         :omniauthable, omniauth_providers: %i[saml]
+ 
+   attribute :role, :string, default: ADMIN_ROLE
+   attribute :uuid, :string, default: -> { SecureRandom.uuid }
+@@ -77,8 +84,12 @@ class User < ApplicationRecord
+   scope :active, -> { where(archived_at: nil) }
+   scope :archived, -> { where.not(archived_at: nil) }
+   scope :admins, -> { where(role: ADMIN_ROLE) }
++  scope :editors, -> { where(role: EDITOR_ROLE) }
++  scope :viewers, -> { where(role: VIEWER_ROLE) }
++  scope :integrations, -> { where(role: INTEGRATION_ROLE) }
+ 
+   validates :email, format: { with: /\A[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\z/ }
++  validate :cannot_remove_last_admin, on: :update, if: :role_changed?
+ 
+   def access_token
+     super || build_access_token.tap(&:save!)
+@@ -121,4 +132,54 @@ class User < ApplicationRecord
+       email
+     end
+   end
++
++  def invitation_status
++    return :accepted if sign_in_count.positive?
++    return :expired if reset_password_sent_at.blank?
++
++    if reset_password_sent_at > Devise.reset_password_within.ago
++      :pending
++    else
++      :expired
++    end
++  end
++
++  def invitation_expires_at
++    return nil if reset_password_sent_at.blank?
++
++    reset_password_sent_at + Devise.reset_password_within
++  end
++
++  def admin?
++    role == ADMIN_ROLE
++  end
++
++  def editor?
++    role == EDITOR_ROLE
++  end
++
++  def viewer?
++    role == VIEWER_ROLE
++  end
++
++  def integration?
++    role == INTEGRATION_ROLE
++  end
++
++  def can_manage_templates?
++    admin? || editor?
++  end
++
++  def can_manage_submissions?
++    admin? || editor?
++  end
++
++  private
++
++  def cannot_remove_last_admin
++    return unless role_was == ADMIN_ROLE && role != ADMIN_ROLE
++    return unless account.users.active.admins.where.not(id:).none?
++
++    errors.add(:role, 'cannot demote the last admin')
++  end
+ end

@@ -1,0 +1,65 @@
+<% cfg = @encrypted_config.value || {} %>
+<% if @encrypted_config.errors.any? %>
+  <div class="alert alert-error mb-4">
+    <%= @encrypted_config.errors.full_messages.join(', ') %>
+  </div>
+<% end %>
+
+<div class="bg-base-200 rounded-lg p-4 mb-6 text-sm space-y-1">
+  <p class="font-bold"><%= t('service_provider_sp_details') %></p>
+  <p><span class="font-medium">ACS URL:</span> <code><%= SamlConfigs.callback_url %></code></p>
+  <p><span class="font-medium">Entity ID:</span> <code><%= cfg['sp_entity_id'].presence || SamlConfigs.default_sp_entity_id %></code></p>
+  <p><span class="font-medium">Metadata:</span> <code><%= SamlConfigs.metadata_url %></code></p>
+</div>
+
+<%= form_with url: settings_sso_index_path, method: :post, scope: :encrypted_config, html: { class: 'space-y-4' } do |f| %>
+  <div class="form-control">
+    <%= f.label :idp_sso_service_url, t('idp_sso_url'), class: 'label' %>
+    <%= f.url_field :idp_sso_service_url, value: cfg['idp_sso_service_url'], required: true, class: 'base-input',
+                    placeholder: 'https://idp.example.com/sso/saml' %>
+  </div>
+
+  <div class="form-control">
+    <%= f.label :idp_slo_service_url, t('idp_slo_url_optional'), class: 'label' %>
+    <%= f.url_field :idp_slo_service_url, value: cfg['idp_slo_service_url'], class: 'base-input' %>
+  </div>
+
+  <div class="form-control">
+    <%= f.label :idp_cert, t('idp_x509_certificate'), class: 'label' %>
+    <%= f.text_area :idp_cert, value: cfg['idp_cert'], required: true, rows: 6, class: 'base-input font-mono text-xs',
+                    placeholder: "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----" %>
+  </div>
+
+  <div class="form-control">
+    <%= f.label :idp_entity_id, t('idp_entity_id_optional'), class: 'label' %>
+    <%= f.text_field :idp_entity_id, value: cfg['idp_entity_id'], class: 'base-input' %>
+  </div>
+
+  <div class="form-control">
+    <%= f.label :email_attribute, t('email_attribute_optional'), class: 'label' %>
+    <%= f.text_field :email_attribute, value: cfg['email_attribute'], class: 'base-input', placeholder: 'email' %>
+  </div>
+
+  <div class="form-control">
+    <label class="flex items-center gap-2 cursor-pointer">
+      <%= check_box_tag 'encrypted_config[auto_provision]', '1', ActiveModel::Type::Boolean.new.cast(cfg['auto_provision']), class: 'checkbox' %>
+      <span><%= t('automatically_create_new_users_on_first_sign_in') %></span>
+    </label>
+  </div>
+
+  <div class="form-control">
+    <%= f.label :default_role, t('default_role_for_new_users'), class: 'label' %>
+    <%= f.select :default_role, User::SELECTABLE_ROLES.map { |r| [r.capitalize, r] }, { selected: cfg['default_role'] || User::EDITOR_ROLE }, class: 'base-input' %>
+  </div>
+
+  <div class="flex gap-2 pt-2">
+    <%= f.button button_title(title: t('save'), disabled_with: t('saving')), class: 'base-button' %>
+  </div>
+<% end %>
+
+<% if @encrypted_config.persisted? %>
+  <div class="pt-2">
+    <%= button_to t('disable'), destroy_settings_sso_index_path, method: :delete,
+                  class: 'white-button', form: { data: { turbo_confirm: t('are_you_sure_') } } %>
+  </div>
+<% end %>

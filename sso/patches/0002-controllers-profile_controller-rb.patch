@@ -1,0 +1,13 @@
+diff --git a/app/controllers/profile_controller.rb b/app/controllers/profile_controller.rb
+index 1bbdb14a..8dd93679 100644
+--- a/app/controllers/profile_controller.rb
++++ b/app/controllers/profile_controller.rb
+@@ -2,7 +2,7 @@
+ 
+ class ProfileController < ApplicationController
+   before_action do
+-    authorize!(:manage, current_user)
++    authorize!(:update, current_user)
+   end
+ 
+   def index; end

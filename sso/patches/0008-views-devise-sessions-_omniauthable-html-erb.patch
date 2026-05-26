@@ -1,0 +1,11 @@
+diff --git a/app/views/devise/sessions/_omniauthable.html.erb b/app/views/devise/sessions/_omniauthable.html.erb
+index e69de29b..fb873e0c 100644
+--- a/app/views/devise/sessions/_omniauthable.html.erb
++++ b/app/views/devise/sessions/_omniauthable.html.erb
+@@ -0,0 +1,6 @@
++<% if SamlConfigs.configured? %>
++  <div class="form-control mt-4">
++    <%= button_to t('sign_in_with_sso'), user_saml_omniauth_authorize_path,
++                  data: { turbo: false }, class: 'white-button w-full' %>
++  </div>
++<% end %>

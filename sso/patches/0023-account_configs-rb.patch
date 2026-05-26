@@ -1,0 +1,12 @@
+diff --git a/lib/account_configs.rb b/lib/account_configs.rb
+index 06fec78f..b562f8db 100644
+--- a/lib/account_configs.rb
++++ b/lib/account_configs.rb
+@@ -2,6 +2,7 @@
+ 
+ module AccountConfigs
+   REMINDER_DURATIONS = {
++    'two_minutes' => '2 minutes (for testing)',
+     'one_hour' => '1 hour',
+     'two_hours' => '2 hours',
+     'four_hours' => '4 hours',

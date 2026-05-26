@@ -1,0 +1,13 @@
+diff --git a/app/views/sso_settings/index.html.erb b/app/views/sso_settings/index.html.erb
+index a0ebddba..2d54c739 100644
+--- a/app/views/sso_settings/index.html.erb
++++ b/app/views/sso_settings/index.html.erb
+@@ -2,7 +2,7 @@
+   <%= render 'shared/settings_nav' %>
+   <div class="flex-grow max-w-xl mx-auto">
+     <h1 class="text-4xl font-bold mb-4">SAML SSO</h1>
+-    <%= render 'placeholder' %>
++    <%= render 'form' %>
+   </div>
+   <div class="w-0 md:w-52"></div>
+ </div>

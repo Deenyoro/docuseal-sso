@@ -1,0 +1,55 @@
+# DocuSeal SSO deployment stack.
+#
+# Runs the SSO image (user roles, company logo, email reminders, SAML SSO) with
+# Postgres and Redis. Redis backs the embedded Sidekiq that drives the email
+# reminder jobs.
+#
+#   cp sso/deploy/.env.example sso/deploy/.env   # then edit values
+#   docker compose --env-file sso/deploy/.env -f sso/deploy/docker-compose.yml up -d
+
+services:
+  app:
+    image: ${DOCUSEAL_SSO_IMAGE:-ghcr.io/deenyoro/docuseal-sso:latest}
+    container_name: docuseal-sso
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${DOCUSEAL_PORT:-3000}:3000"
+    volumes:
+      - ./data/docuseal:/data/docuseal
+    environment:
+      HOST: ${HOST:-localhost}
+      FORCE_SSL: ${FORCE_SSL:-}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE in .env}
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/docuseal
+      REDIS_URL: redis://redis:6379/0
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:18
+    volumes:
+      - ./data/pg:/var/lib/postgresql/18/docker
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: docuseal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - ./data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped

@@ -1,0 +1,55 @@
+diff --git a/app/controllers/sso_settings_controller.rb b/app/controllers/sso_settings_controller.rb
+index 3e9b6bba..1a833790 100644
+--- a/app/controllers/sso_settings_controller.rb
++++ b/app/controllers/sso_settings_controller.rb
+@@ -2,14 +2,48 @@
+ 
+ class SsoSettingsController < ApplicationController
+   before_action :load_encrypted_config
+-  authorize_resource :encrypted_config, only: :index
++  authorize_resource :encrypted_config, only: %i[index create destroy]
++
++  SAML_FIELDS = %w[
++    idp_sso_service_url idp_slo_service_url idp_cert idp_entity_id
++    sp_entity_id name_identifier_format email_attribute
++    first_name_attribute last_name_attribute default_role
++  ].freeze
+ 
+   def index; end
+ 
++  def create
++    value = saml_params.to_h.compact_blank
++    value['auto_provision'] = ActiveModel::Type::Boolean.new.cast(params.dig(:encrypted_config, :auto_provision)) || false
++
++    @encrypted_config.value = value
++
++    if value['idp_sso_service_url'].blank? || value['idp_cert'].blank?
++      @encrypted_config.errors.add(:base, I18n.t('idp_sso_url_and_certificate_are_required'))
++      return render :index, status: :unprocessable_content
++    end
++
++    if @encrypted_config.save
++      redirect_to settings_sso_index_path, notice: I18n.t('changes_have_been_saved')
++    else
++      render :index, status: :unprocessable_content
++    end
++  end
++
++  def destroy
++    @encrypted_config.destroy! if @encrypted_config.persisted?
++
++    redirect_to settings_sso_index_path, notice: I18n.t('changes_have_been_saved')
++  end
++
+   private
+ 
+   def load_encrypted_config
+     @encrypted_config =
+-      EncryptedConfig.find_or_initialize_by(account: current_account, key: 'saml_configs')
++      EncryptedConfig.find_or_initialize_by(account: current_account, key: SamlConfigs::CONFIG_KEY)
++  end
++
++  def saml_params
++    params.require(:encrypted_config).permit(SAML_FIELDS)
+   end
+ end

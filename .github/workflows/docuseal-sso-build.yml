@@ -1,0 +1,87 @@
+name: Build & push DocuSeal SSO image
+
+# Auto-builds the SSO image (user roles, company logo, email reminders, SAML
+# SSO) on every push to the default branch (including when you "Sync fork" from
+# upstream DocuSeal), on manual dispatch, and weekly as a safety rebuild.
+# Pushes to GitHub Container Registry (GHCR).
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - "**.md"
+      - "sso/deploy/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+
+concurrency:
+  group: docuseal-sso-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    # Self-hosted runner scale set in the AG-Talos cluster
+    # (helmrelease at kubernetes/apps/github/actions-runner-controller/
+    # runner-scale-sets/docuseal-sso/). The runner pod is ephemeral
+    # with an 80 GiB Ceph RBD volume mounted at /var/lib/docker for DinD.
+    runs-on: docuseal-sso
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image name and version
+        id: vars
+        run: |
+          owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          echo "image=${REGISTRY}/${owner}/docuseal-sso" >> "$GITHUB_OUTPUT"
+          echo "tag=$(date +%Y.%m.%d)-${GITHUB_SHA::8}" >> "$GITHUB_OUTPUT"
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.vars.outputs.image }}
+          tags: |
+            type=raw,value=latest
+            type=raw,value=${{ steps.vars.outputs.tag }}
+            type=sha,format=short
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.sso
+          push: true
+          # arm64 builds via QEMU are slow; add linux/arm64 here if you need it.
+          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Summary
+        run: |
+          {
+            echo "### DocuSeal SSO image pushed"
+            echo ""
+            echo '```'
+            echo "${{ steps.meta.outputs.tags }}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
