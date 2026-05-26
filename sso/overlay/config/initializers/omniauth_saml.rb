@@ -15,7 +15,13 @@ if defined?(OmniAuth::Strategies::SAML)
       idp_sso_service_url: 'https://example.invalid/sso',
       idp_cert: '',
       sp_entity_id: 'docuseal',
-      name_identifier_format: SamlConfigs::DEFAULT_NAME_ID_FORMAT,
+      # Literal NameID format (not SamlConfigs::DEFAULT_NAME_ID_FORMAT): this
+      # runs at boot, before the lib/ autoloader can resolve SamlConfigs, so
+      # referencing the constant here raises NameError and Puma fails to load.
+      # The real per-account value is injected at request time by the setup
+      # lambda below (where autoloading works). Keep this in sync with
+      # SamlConfigs::DEFAULT_NAME_ID_FORMAT.
+      name_identifier_format: 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
       setup: lambda do |env|
         strategy = env['omniauth.strategy']
         options = SamlConfigs.omniauth_options
