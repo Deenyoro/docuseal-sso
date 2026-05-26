@@ -56,5 +56,22 @@ module DocusealSso
     def hide_trusted_signature_promo?
       enabled?(:hide_trusted_signature_promo)
     end
+
+    # True when email/password login should be disabled in favour of SSO.
+    # Requires BOTH the per-account `force_sso_auth` flag AND a configured SAML
+    # provider, so enabling the flag without working SSO can never lock anyone
+    # out. Any error fails safe (returns false => password login stays on).
+    def force_sso_active?(account = nil)
+      return false unless defined?(SamlConfigs) && SamlConfigs.configured?(account)
+
+      account ||= SamlConfigs.account_for
+      return false if account.nil?
+
+      cfg = account.account_configs.find_by(key: AccountConfig::FORCE_SSO_AUTH_KEY)
+      ActiveModel::Type::Boolean.new.cast(cfg&.value) == true
+    rescue StandardError => e
+      Rails.logger.error("DocusealSso.force_sso_active? failed: #{e.message}") if defined?(Rails)
+      false
+    end
   end
 end
