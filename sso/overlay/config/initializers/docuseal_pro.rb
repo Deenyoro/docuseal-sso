@@ -20,11 +20,11 @@ end
 # Feature 4: Schedule the reminder job
 # Use ActiveSupport load hook to schedule when Sidekiq actually starts (works with embedded Sidekiq in Puma)
 ActiveSupport.on_load(:sidekiq_config) do |_config|
-  # Check if the job is already scheduled to avoid duplicates on restart
-  unless Sidekiq::ScheduledSet.new.any? { |job| job.klass == 'ProcessSubmitterRemindersJob' }
+  # Avoid scheduling duplicates on restart.
+  if Sidekiq::ScheduledSet.new.any? { |job| job.klass == 'ProcessSubmitterRemindersJob' }
+    Rails.logger.info('ProcessSubmitterRemindersJob: Job already scheduled, skipping')
+  else
     Rails.logger.info('ProcessSubmitterRemindersJob: Scheduling initial reminder job')
     ProcessSubmitterRemindersJob.perform_in(1.minute)
-  else
-    Rails.logger.info('ProcessSubmitterRemindersJob: Job already scheduled, skipping')
   end
 end

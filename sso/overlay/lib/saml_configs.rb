@@ -103,7 +103,7 @@ module SamlConfigs
   def base_url
     opts = url_options
     url = "#{opts[:protocol] || 'https'}://#{opts[:host]}"
-    url += ":#{opts[:port]}" if opts[:port].present? && ![80, 443].include?(opts[:port].to_i)
+    url += ":#{opts[:port]}" if opts[:port].present? && [80, 443].exclude?(opts[:port].to_i)
     url
   end
 
