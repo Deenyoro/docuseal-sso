@@ -1,0 +1,11 @@
+# Overlay code under sso/ is applied to the app tree at Docker build time and
+# is not part of the upstream lint surface. RuboCop resolves the NEAREST
+# .rubocop.yml per file, so this config governs everything under sso/ when
+# upstream's CI runs `bundle exec rubocop` on the fork.
+#
+# All style/metrics cops are disabled here on purpose: a rubocop version bump
+# arriving via "Sync fork" must never be able to turn the fork's CI red over
+# overlay style. Lint/Syntax still runs (it is special-cased by RuboCop), so
+# real syntax errors are still caught.
+AllCops:
+  DisabledByDefault: true

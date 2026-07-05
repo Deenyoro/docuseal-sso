@@ -27,13 +27,20 @@ Feature code ported from
 
 ## How the build works
 
-`Dockerfile.sso` runs a `source` stage that applies the overlay before the
-webpack/app stages consume the tree:
+CI (`.github/workflows/docuseal-sso-build.yml`) applies the overlay to the
+checkout and then builds with **upstream's own Dockerfile** — there is no
+forked Dockerfile to drift when upstream changes base images, dependencies or
+download sources:
 
 | Step | Script | Mechanism | Used for |
 |---|---|---|---|
-| 1 | `sso/script/apply-overlay.sh` | `rsync --ignore-existing` | **New** files (never overwrites upstream) |
+| 0 | `sso/script/heal-patches.sh` | `git apply --3way` + regenerate | **Self-heal** patches that drifted after a fork sync (refresh is pushed back automatically) |
+| 1 | `sso/script/apply-overlay.sh` | `rsync --ignore-existing` + appends | **New** files (never overwrites upstream); `sso/appends/*.append` are appended to churn-heavy upstream files (e.g. `Gemfile`) — position-independent, so they can never reject |
 | 2 | `sso/script/apply-patches.sh` | `patch -p1` (unified diffs) | **Modifications** to existing upstream files |
+
+The workflow also auto-disables any workflow that is not on its keep list, so
+workflows upstream adds in the future can never leave a failing check on the
+fork.
 
 ## Layout
 
@@ -50,8 +57,9 @@ sso/
 │   ├── app/controllers/users/omniauth_callbacks_controller.rb
 │   ├── app/jobs/{process_submitter_reminders,send_submitter_reminder_email}_job.rb
 │   └── app/views/sso_settings/_form.html.erb
-├── patches/                      # 24 unified diffs to existing upstream files
-├── script/{apply-overlay,apply-patches}.sh
+├── patches/                      # unified diffs to existing upstream files
+├── appends/                      # blocks appended to upstream files (Gemfile)
+├── script/{apply-overlay,apply-patches,heal-patches,build-local}.sh
 └── deploy/{docker-compose.yml,.env.example}
 ```
 
@@ -77,17 +85,19 @@ git merge upstream/master        # or use GitHub's "Sync fork" button
 git push                         # triggers .github/workflows/docuseal-sso-build.yml
 ```
 
-If a patch no longer applies (upstream changed a patched file), the Docker build
-fails with the patched filename — regenerate it:
+Patch drift after a sync is normally **self-healed by CI** (`heal-patches.sh`
+re-anchors the diff and pushes the refresh back). Manual work is only needed if
+the build fails with a real conflict — upstream rewrote the exact lines a patch
+changes. Then re-apply the change by hand and regenerate:
 
 ```bash
-git diff upstream/master HEAD -- <file> > sso/patches/<NNNN-name>.patch
+git diff -- <file> > sso/patches/<NNNN-name>.patch   # from a tree with the change applied
 ```
 
 ## Local build & run
 
 ```bash
-docker build -f Dockerfile.sso -t docuseal-sso .
+sso/script/build-local.sh                      # stages a clean tree, applies overlay, builds
 cp sso/deploy/.env.example sso/deploy/.env     # set SECRET_KEY_BASE, HOST
 docker compose --env-file sso/deploy/.env -f sso/deploy/docker-compose.yml up -d
 ```

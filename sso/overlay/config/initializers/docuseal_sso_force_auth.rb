@@ -46,13 +46,11 @@ module ForceSsoPasswordResetBlock
 end
 
 Rails.application.config.to_prepare do
-  if defined?(SessionsController) &&
-     !SessionsController.ancestors.include?(ForceSsoPasswordLoginBlock)
+  if defined?(SessionsController) && !(SessionsController <= ForceSsoPasswordLoginBlock)
     SessionsController.prepend(ForceSsoPasswordLoginBlock)
   end
 
-  if defined?(PasswordsController) &&
-     !PasswordsController.ancestors.include?(ForceSsoPasswordResetBlock)
+  if defined?(PasswordsController) && !(PasswordsController <= ForceSsoPasswordResetBlock)
     PasswordsController.prepend(ForceSsoPasswordResetBlock)
   end
 end

@@ -1,0 +1,5 @@
+gem 'omniauth-rails_csrf_protection'
+# omniauth-saml >= 2.2.1 requires ruby-saml ~> 1.18; ruby-saml >= 1.18.0 is the
+# fix for CVE-2025-25291/25292 (SAML auth bypass via parser differential).
+gem 'omniauth-saml', '>= 2.2.1'
+gem 'ruby-saml', '>= 1.18.0'

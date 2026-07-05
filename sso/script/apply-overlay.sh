@@ -60,6 +60,41 @@ if [ "${COLLISIONS}" -gt 0 ]; then
   exit 1
 fi
 
+# ---------------------------------------------------------------------------
+# Appends: sso/appends/<name>.append is appended to the upstream file <name>
+# ("__" in the filename maps to "/"). Appending is position-independent, so
+# unlike a unified diff it can NEVER break when upstream edits the file —
+# this is the drift-proof mechanism for "add lines to a churn-heavy file"
+# (e.g. Gemfile). Marker comments make the operation idempotent.
+# ---------------------------------------------------------------------------
+APPENDS_DIR="${SSO_ROOT}/appends"
+if [ -d "${APPENDS_DIR}" ]; then
+  for append_file in "${APPENDS_DIR}"/*.append; do
+    [ -f "${append_file}" ] || continue
+    target="$(basename "${append_file%.append}" | sed 's|__|/|g')"
+    target_path="${APP_ROOT}/${target}"
+    marker="SSO append: $(basename "${append_file}")"
+
+    if [ ! -f "${target_path}" ]; then
+      echo "SSO: FATAL — append target does not exist upstream: ${target}"
+      exit 1
+    fi
+
+    if grep -qF "# >>> ${marker}" "${target_path}"; then
+      echo "SSO: Append already present, skipping: ${target}"
+      continue
+    fi
+
+    {
+      echo ""
+      echo "# >>> ${marker}"
+      cat "${append_file}"
+      echo "# <<< ${marker}"
+    } >> "${target_path}"
+    echo "SSO: Appended $(basename "${append_file}") -> ${target}"
+  done
+fi
+
 echo "=========================================="
 echo "SSO: Overlay applied successfully"
 echo "=========================================="
