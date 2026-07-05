@@ -1,0 +1,26 @@
+# Upstream anchors the SSO overlay depends on — verified by sso/script/sync-canary.sh
+# against the MERGED tree before every sync, so an upstream rename/rewrite of a
+# method the overlay overrides is caught BEFORE it silently disables a feature.
+#
+# Format: <upstream file>::<required substring>. Lines starting with # are comments.
+# When a line fails: the named upstream code changed — review the overlay module
+# that overrides it and re-anchor.
+
+# DocusealPro::CreateStampAttachmentOverride replaces load_logo wholesale
+lib/submitters/create_stamp_attachment.rb::def load_logo
+
+# DocusealPro::GenerateAuditTrailOverride wraps add_logo (calls super)
+lib/submissions/generate_audit_trail.rb::def add_logo
+
+# SendSubmitterInvitationSmsJob is invoked by upstream here (Pro hook we implement)
+app/controllers/submitters_controller.rb::SendSubmitterInvitationSmsJob
+
+# SsoSmsInvitations hook target (patch 0029 inserts into this loop)
+lib/submitters.rb::def send_signature_requests
+
+# Job mirrors upstream's email sibling; SMS message templating relies on these
+lib/replace_email_variables.rb::tracking_event_type
+app/models/submission_event.rb::send_sms
+
+# SmsConfigs stores under the key upstream's controller loads
+app/controllers/sms_settings_controller.rb::sms_configs
