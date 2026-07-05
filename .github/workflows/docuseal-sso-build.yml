@@ -41,10 +41,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # ci.yml (rubocop/tests) and docker.yml (upstream tag builds) are
-          # known-green and kept; anything else that appears via fork sync is
-          # not ours and gets disabled before it can fail.
-          keep=".github/workflows/docuseal-sso-build.yml .github/workflows/ci.yml .github/workflows/docker.yml"
+          # Upstream's ci.yml/docker.yml only re-test the pristine upstream
+          # tree (the overlay is applied at image build, which fail-louds on
+          # its own) — they can go red purely from upstream's state, so they
+          # are disabled along with anything else upstream ships or adds.
+          keep=".github/workflows/docuseal-sso-build.yml .github/workflows/sync-canary.yml"
           gh api "repos/${{ github.repository }}/actions/workflows" --paginate \
             -q '.workflows[] | [(.id|tostring), .state, .path] | @tsv' |
           while IFS=$'\t' read -r id state path; do
