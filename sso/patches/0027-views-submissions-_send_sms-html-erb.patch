@@ -1,0 +1,20 @@
+diff --git a/app/views/submissions/_send_sms.html.erb b/app/views/submissions/_send_sms.html.erb
+index 4637e3ac..f448688c 100644
+--- a/app/views/submissions/_send_sms.html.erb
++++ b/app/views/submissions/_send_sms.html.erb
+@@ -1,3 +1,12 @@
+-<div class="form-control">
+-  <%= render 'sms_settings/placeholder' %>
+-</div>
++<% if defined?(SmsConfigs) && SmsConfigs.configured?(current_account) %>
++  <div class="form-control">
++    <%= f.label :send_sms, for: uuid = SecureRandom.uuid, class: 'flex items-center cursor-pointer' do %>
++      <%= f.check_box :send_sms, id: uuid, class: 'base-checkbox', checked: local_assigns[:checked] == true %>
++      <span class="label"><%= local_assigns[:resend_sms] ? t('re_send_sms') : t('send_sms') %></span>
++    <% end %>
++  </div>
++<% else %>
++  <div class="form-control">
++    <%= render 'sms_settings/placeholder' %>
++  </div>
++<% end %>

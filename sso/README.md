@@ -24,6 +24,18 @@ Feature code ported from
   with a real settings form (replacing the upstream "unlock with Pro"
   placeholder) that stores per-account IdP config in the `saml_configs`
   EncryptedConfig. Supports optional just-in-time user provisioning.
+- **RingCentral SMS (send via phone)** *(net-new in this overlay)* — makes
+  DocuSeal's Pro-gated "send via SMS" surfaces functional through a
+  RingCentral connector (ported from the zammad-kc `Kc::RingcentralApi`
+  integration). Settings → SMS configures a server-to-server (JWT auth)
+  RingCentral app, verifies it, loads the account's SMS-capable numbers and
+  lets you pick the send-from number. The signing link then goes out via SMS
+  from the new-submission "Send via SMS" checkbox, the phone-only invite flow,
+  the submitter edit page, and the "Send SMS / Re-send SMS" button on the
+  submission page (which upstream wires to `SendSubmitterInvitationSmsJob` —
+  a class only the paid cloud defines; the overlay provides it). Sends emit
+  the native `send_sms` submission event, so audit trails and `click_sms`
+  link tracking work exactly like Pro.
 
 ## How the build works
 
@@ -62,6 +74,26 @@ sso/
 ├── script/{apply-overlay,apply-patches,heal-patches,build-local}.sh
 └── deploy/{docker-compose.yml,.env.example}
 ```
+
+## RingCentral SMS setup
+
+1. In the [RingCentral developer console](https://developers.ringcentral.com/),
+   create a **server-to-server (no UI)** app with **JWT auth** and the
+   **SMS** application scope, then issue a JWT credential for it.
+2. Sign in to DocuSeal as an admin → **Settings → SMS**. Paste the app's
+   Client ID, Client secret and the JWT credential, then **Save & verify** —
+   the connector authenticates and loads your SMS-capable numbers.
+3. Pick the **Send from number** (only numbers with the `SmsSender` feature
+   are listed) and save again. Optionally customize the message template
+   (`{{template.name}}`, `{{account.name}}`, `{{sender.name}}`,
+   `{{submitter.name}}`, `{{submitter.link}}`).
+4. Recipients with a phone number can now be texted their signing link: check
+   **Send via SMS** when creating a submission, or use **Send SMS** on the
+   submission page.
+
+> **Testing caveat:** authored against the RingCentral production REST API
+> (`/restapi/v1.0/account/~/extension/~/sms`, JWT grant) without a live
+> RingCentral sandbox. Verify with your account before relying on it.
 
 ## SAML SSO setup
 

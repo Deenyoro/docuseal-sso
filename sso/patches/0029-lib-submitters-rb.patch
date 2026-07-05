@@ -1,0 +1,13 @@
+diff --git a/lib/submitters.rb b/lib/submitters.rb
+index 97041550..8c39dc8d 100644
+--- a/lib/submitters.rb
++++ b/lib/submitters.rb
+@@ -165,6 +165,8 @@ module Submitters
+ 
+   def send_signature_requests(submitters, delay_seconds: nil)
+     submitters.each_with_index do |submitter, index|
++      'SsoSmsInvitations'.safe_constantize&.maybe_enqueue(submitter, index:, delay_seconds:)
++
+       next if submitter.email.blank?
+       next if submitter.declined_at?
+       next if submitter.preferences['send_email'] == false

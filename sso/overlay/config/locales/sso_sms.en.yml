@@ -1,0 +1,24 @@
+en:
+  sso_sms:
+    ringcentral_connector: RingCentral connector
+    setup_hint: Create a server-to-server (JWT auth) app in the RingCentral developer console with the SMS permission, then paste its credentials here. Signature-request texts are sent through your RingCentral number.
+    connected: Connected
+    sending_from: 'Sending from'
+    client_id: Client ID
+    client_secret: Client secret
+    jwt_credential: JWT credential
+    saved_leave_blank_to_keep: Saved — leave blank to keep
+    send_from_number: Send from number
+    pick_a_number: Pick a number…
+    numbers_load_after_save: Your SMS-capable numbers are loaded from RingCentral after the first save.
+    message_template_optional: Message template (optional)
+    variables_hint: Available variables
+    save_and_verify: Save & verify
+    remove_connector: Remove connector
+    missing_credentials: Enter the RingCentral client ID, client secret and JWT credential.
+    verified_pick_number: RingCentral verified — now pick the number to send from.
+    connector_saved: RingCentral connector verified and saved.
+    verification_failed: RingCentral verification failed
+    connector_removed: RingCentral connector removed.
+    not_configured: SMS sending is not configured.
+    sms_has_been_sent: SMS has been sent.

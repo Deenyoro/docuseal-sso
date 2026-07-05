@@ -1,0 +1,74 @@
+<% cfg = @encrypted_config.value.presence || {} %>
+<% verified = cfg['verified_at'].present? %>
+<% numbers = cfg['available_numbers'].to_a %>
+
+<div class="bg-base-200 rounded-lg p-4 mb-6 text-sm space-y-1">
+  <p class="font-bold"><%= t('sso_sms.ringcentral_connector') %></p>
+  <p class="text-gray-700"><%= t('sso_sms.setup_hint') %></p>
+  <% if verified %>
+    <p>
+      <span class="badge badge-success badge-sm align-middle"><%= t('sso_sms.connected') %></span>
+      <% if cfg['from_number'].present? %>
+        <span class="align-middle ml-1"><%= t('sso_sms.sending_from') %> <code><%= cfg['from_number'] %></code></span>
+      <% end %>
+    </p>
+  <% end %>
+</div>
+
+<%= form_with url: settings_sms_configs_path, method: :post, scope: :sms_configs, html: { class: 'space-y-4' } do |f| %>
+  <div class="form-control">
+    <%= f.label :client_id, t('sso_sms.client_id'), class: 'label' %>
+    <%= f.text_field :client_id, value: cfg['client_id'], required: cfg['client_id'].blank?, class: 'base-input' %>
+  </div>
+
+  <div class="form-control">
+    <%= f.label :client_secret, t('sso_sms.client_secret'), class: 'label' %>
+    <%= f.password_field :client_secret, class: 'base-input',
+                         placeholder: cfg['client_secret'].present? ? t('sso_sms.saved_leave_blank_to_keep') : nil,
+                         required: cfg['client_secret'].blank? %>
+  </div>
+
+  <div class="form-control">
+    <%= f.label :jwt_token, t('sso_sms.jwt_credential'), class: 'label' %>
+    <%= f.text_area :jwt_token, rows: 3, class: 'base-input font-mono text-xs',
+                    placeholder: cfg['jwt_token'].present? ? t('sso_sms.saved_leave_blank_to_keep') : 'eyJraWQi...',
+                    required: cfg['jwt_token'].blank? %>
+  </div>
+
+  <div class="form-control">
+    <%= f.label :from_number, t('sso_sms.send_from_number'), class: 'label' %>
+    <% if numbers.present? %>
+      <%= f.select :from_number,
+                   options_for_select(numbers.map { |n|
+                     label = [n['phone_number'], n['label'] || n['usage_type']].compact.join(' — ')
+                     [label, n['phone_number']]
+                   }, cfg['from_number']),
+                   { include_blank: t('sso_sms.pick_a_number') }, { class: 'base-select w-full' } %>
+    <% else %>
+      <%= f.text_field :from_number, value: cfg['from_number'], class: 'base-input', placeholder: '+15551234567' %>
+      <span class="text-xs text-gray-500 mt-1"><%= t('sso_sms.numbers_load_after_save') %></span>
+    <% end %>
+  </div>
+
+  <div class="form-control">
+    <%= f.label :message_template, t('sso_sms.message_template_optional'), class: 'label' %>
+    <%= f.text_area :message_template, rows: 2, class: 'base-input text-sm',
+                    value: cfg['message_template'],
+                    placeholder: SmsConfigs::DEFAULT_MESSAGE %>
+    <span class="text-xs text-gray-500 mt-1">
+      <%= t('sso_sms.variables_hint') %>: <code>{{template.name}}</code> <code>{{account.name}}</code> <code>{{sender.name}}</code> <code>{{submitter.name}}</code> <code>{{submitter.link}}</code>
+    </span>
+  </div>
+
+  <div class="form-control pt-2">
+    <%= f.button t('sso_sms.save_and_verify'), class: 'base-button' %>
+  </div>
+<% end %>
+
+<% if @encrypted_config.persisted? %>
+  <div class="form-control mt-2">
+    <%= button_to t('sso_sms.remove_connector'), settings_sms_configs_path, method: :delete,
+                  class: 'btn btn-outline btn-sm w-full',
+                  data: { turbo_confirm: t('are_you_sure_') } %>
+  </div>
+<% end %>
