@@ -1,11 +1,11 @@
 diff --git a/app/views/sms_settings/index.html.erb b/app/views/sms_settings/index.html.erb
-index ce3d516c..72ff761b 100644
+index 2c2d2e90..084e08d2 100644
 --- a/app/views/sms_settings/index.html.erb
 +++ b/app/views/sms_settings/index.html.erb
 @@ -2,7 +2,7 @@
    <%= render 'shared/settings_nav' %>
    <div class="flex-grow max-w-xl mx-auto">
-     <h1 class="text-4xl font-bold mb-4">SMS</h1>
+     <h1 class="text-3xl md:text-4xl font-bold mb-4">SMS</h1>
 -    <%= render 'placeholder' %>
 +    <%= defined?(SmsConfigs) ? render('ringcentral_form') : render('placeholder') %>
    </div>

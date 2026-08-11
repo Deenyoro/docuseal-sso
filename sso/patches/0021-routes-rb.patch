@@ -1,5 +1,5 @@
 diff --git a/config/routes.rb b/config/routes.rb
-index 1da136c5..b1ea5395 100644
+index ad8505e5..f90515dc 100644
 --- a/config/routes.rb
 +++ b/config/routes.rb
 @@ -14,8 +14,9 @@ Rails.application.routes.draw do
@@ -14,10 +14,10 @@ index 1da136c5..b1ea5395 100644
  
    devise_scope :user do
      resource :invitation, only: %i[update] do
-@@ -186,7 +187,9 @@ Rails.application.routes.draw do
+@@ -192,7 +193,9 @@ Rails.application.routes.draw do
        resource :reveal_access_token, only: %i[show create], controller: 'reveal_access_token'
      end
-     resources :email, only: %i[index create], controller: 'email_smtp_settings'
+     resources :email, only: %i[index create destroy], controller: 'email_smtp_settings'
 -    resources :sso, only: %i[index], controller: 'sso_settings'
 +    resources :sso, only: %i[index create], controller: 'sso_settings' do
 +      delete :destroy, on: :collection
@@ -25,7 +25,7 @@ index 1da136c5..b1ea5395 100644
      resources :notifications, only: %i[index create], controller: 'notifications_settings'
      resource :esign, only: %i[show create new update destroy], controller: 'esign_settings'
      resources :users, only: %i[index]
-@@ -195,6 +198,7 @@ Rails.application.routes.draw do
+@@ -201,6 +204,7 @@ Rails.application.routes.draw do
      resources :integration_users, only: %i[index], path: 'users/:status', controller: 'users',
                                    defaults: { status: :integration }
      resource :personalization, only: %i[show create], controller: 'personalization_settings'
