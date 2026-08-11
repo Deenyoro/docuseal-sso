@@ -1,0 +1,41 @@
+# Post-apply assertions — checked by sso/script/verify-overlay.sh against the BUILT
+# tree (after apply-overlay + apply-patches), so a drifted patch that heals wrong or
+# silently drops a hunk fails the build LOUDLY instead of shipping a broken image.
+# This is exactly the class of bug that made destroy_settings_sso_index_path vanish
+# in production (fuzzy apply dropped the route; nothing noticed until a 500).
+#
+# Format: <built file path>::<substring that MUST be present>. '#' = comment.
+# Keep one assertion per SSO/SMS feature's critical wiring.
+
+# --- SSO login (SAML / omniauth) ---
+config/routes.rb::omniauth_callbacks
+config/initializers/omniauth_saml.rb::SAML
+app/views/devise/sessions/_omniauthable.html.erb::sign_in_with_sso
+app/views/devise/sessions/new.html.erb::force_sso_active?
+
+# --- SSO settings page (the prod-500 area) ---
+config/routes.rb::delete :destroy, on: :collection
+app/views/sso_settings/index.html.erb::render 'form'
+app/views/sso_settings/_form.html.erb::destroy_settings_sso_index_path
+app/controllers/sso_settings_controller.rb::SAML_FIELDS
+
+# --- User roles + abilities ---
+app/models/user.rb::ADMIN_ROLE
+lib/ability.rb::EncryptedUserConfig
+
+# --- Hide cloud-upsell menus (DocusealSso guards) ---
+lib/docuseal_sso.rb::hide_sso_menu?
+app/views/shared/_settings_nav.html.erb::hide_sso_menu?
+app/views/shared/_settings_nav.html.erb::hide_sms_menu?
+app/views/shared/_settings_nav.html.erb::hide_plans_menu?
+app/views/shared/_settings_nav.html.erb::hide_console_menu?
+
+# --- RingCentral SMS ---
+config/routes.rb::account_logo
+app/views/submissions/_send_sms_button.html.erb::SmsConfigs
+app/views/sms_settings/index.html.erb::ringcentral_form
+lib/sms_configs.rb::module SmsConfigs
+
+# --- Enterprise i18n overlay (migrated out of the fragile 0020 patch) ---
+config/locales/sso_enterprise.yml::send_test_email
+config/locales/sso_enterprise.yml::Enviar correo de prueba

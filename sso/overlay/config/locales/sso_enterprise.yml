@@ -1,0 +1,181 @@
+# SSO/Enterprise-fork translations — overlay locale (Rails auto-merges config/locales/*.yml).
+# Migrated out of the fragile in-place patch on upstream i18n.yml (27 hunks across a 7700-line
+# file) so upstream edits can never break it. All 7 languages preserved; i18n.fallbacks=[:en]
+# covers any language the fork didn't translate.
+en:
+  send_test_email: Send Test Email
+  test_smtp_configuration: Test SMTP Configuration
+  test_email_has_been_sent_to: Test email has been sent to %{email}
+  please_configure_smtp_settings_first: Please configure SMTP settings first
+  please_enter_a_valid_email_address: Please enter a valid email address
+  failed_to_send_test_email: "Failed to send test email: %{error}"
+  a_test_email_will_be_sent_to_this_address: A test email will be sent to this address to verify your SMTP configuration
+  send_test_reminder: Send Test Reminder
+  test_reminder_email_has_been_sent_to: Test reminder email has been sent to %{email}
+  a_test_reminder_will_be_sent_to_this_email: A test reminder email will be sent to this address
+  failed_to_send_test_reminder: "Failed to send test reminder: %{error}"
+  no_pending_submissions_found_for_testing: No pending submissions found for testing. Create a submission first.
+  no_templates_found_for_testing: No templates found for testing. Create a template first.
+  docuseal_smtp_test_email: DocuSeal SMTP Test Email
+  this_is_a_test_email_from_docuseal: This is a test email from DocuSeal.
+  if_you_received_this_email_your_smtp_settings_are_working_correctly: If you received this email, your SMTP settings are working correctly.
+  sent_to: "Sent to: %{email}"
+  preface_email_subject_with: Preface email subject with
+  preface_subject_hint: 'Add a prefix to reminder email subjects, e.g. "Reminder: "'
+  logo_recommendation_title: "Recommended: Square icon/symbol"
+  logo_recommendation_square: Use a square image (1:1 aspect ratio)
+  logo_recommendation_size: Recommended size 200x200 to 500x500 pixels
+  logo_recommendation_no_text: Use an icon or symbol without company name text (the name is displayed separately)
+  about: About
+  version_information: Version Information
+  current_version: Current Version
+  version_source_hint: Version information is sourced from GitHub releases.
+  version_not_available: Version information is not available.
+  links: Links
+  github: GitHub
+  modified_version: Modified Version
+  modified_version_description: This is a modified version of DocuSeal with additional features.
+  about_description: A self-hosted and open-source web platform that provides secure and efficient digital document signing and processing.
+  separate_multiple_emails_with_comma_or_new_line: Separate multiple emails with comma or new line
+  accepted: Accepted
+  invitation_pending: Invitation Pending
+  invitation_expired: Invitation Expired
+  invitation_expires_at: 'Invitation link expires: %{time}'
+  resend_invitation: Resend Invitation
+  two_minutes: 2 minutes (for testing)
+  sign_in_with_sso: Sign in with SSO
+  single_sign_on_failed: Single Sign-On failed.
+  single_sign_on_is_not_configured: Single Sign-On is not configured.
+  the_sso_response_did_not_include_an_email: The SSO response did not include an email address.
+  your_account_could_not_be_found_please_contact_your_administrator: Your account could not be found. Please contact your administrator.
+  service_provider_sp_details: Service Provider (SP) details
+  idp_sso_url: Identity Provider SSO URL
+  idp_slo_url_optional: Identity Provider SLO URL (optional)
+  idp_x509_certificate: Identity Provider X.509 certificate
+  idp_entity_id_optional: Identity Provider entity ID (optional)
+  email_attribute_optional: Email attribute name (optional)
+  idp_sso_url_and_certificate_are_required: Identity Provider SSO URL and certificate are required.
+  automatically_create_new_users_on_first_sign_in: Automatically create new users on first sign-in
+  default_role_for_new_users: Default role for new users
+  disable: Disable
+es:
+  send_test_email: Enviar correo de prueba
+  test_smtp_configuration: Probar configuración SMTP
+  test_email_has_been_sent_to: Se ha enviado un correo de prueba a %{email}
+  please_configure_smtp_settings_first: Por favor, configure primero los ajustes SMTP
+  please_enter_a_valid_email_address: Por favor, introduzca una dirección de correo válida
+  failed_to_send_test_email: "Error al enviar correo de prueba: %{error}"
+  a_test_email_will_be_sent_to_this_address: Se enviará un correo de prueba a esta dirección para verificar la configuración SMTP
+  docuseal_smtp_test_email: Correo de prueba SMTP de DocuSeal
+  this_is_a_test_email_from_docuseal: Este es un correo de prueba de DocuSeal.
+  if_you_received_this_email_your_smtp_settings_are_working_correctly: Si recibió este correo, su configuración SMTP funciona correctamente.
+  sent_to: "Enviado a: %{email}"
+  logo_recommendation_title: "Recomendado: Icono/símbolo cuadrado"
+  logo_recommendation_square: Usar una imagen cuadrada (relación de aspecto 1:1)
+  logo_recommendation_size: Tamaño recomendado 200x200 a 500x500 píxeles
+  logo_recommendation_no_text: Usar un icono o símbolo sin texto del nombre de la empresa (el nombre se muestra por separado)
+it:
+  send_test_email: Invia email di prova
+  test_smtp_configuration: Testa configurazione SMTP
+  test_email_has_been_sent_to: Email di prova inviata a %{email}
+  please_configure_smtp_settings_first: Configura prima le impostazioni SMTP
+  please_enter_a_valid_email_address: Inserisci un indirizzo email valido
+  failed_to_send_test_email: "Invio email di prova fallito: %{error}"
+  a_test_email_will_be_sent_to_this_address: Un'email di prova verrà inviata a questo indirizzo per verificare la configurazione SMTP
+  docuseal_smtp_test_email: Email di prova SMTP DocuSeal
+  this_is_a_test_email_from_docuseal: Questa è un'email di prova da DocuSeal.
+  if_you_received_this_email_your_smtp_settings_are_working_correctly: Se hai ricevuto questa email, le tue impostazioni SMTP funzionano correttamente.
+  sent_to: "Inviato a: %{email}"
+  logo_recommendation_title: "Consigliato: Icona/simbolo quadrato"
+  logo_recommendation_square: Usa un'immagine quadrata (rapporto 1:1)
+  logo_recommendation_size: Dimensione consigliata 200x200 a 500x500 pixel
+  logo_recommendation_no_text: Usa un'icona o simbolo senza il nome dell'azienda (il nome viene visualizzato separatamente)
+fr:
+  send_test_email: Envoyer un e‑mail de test
+  test_smtp_configuration: Tester la configuration SMTP
+  test_email_has_been_sent_to: Un e‑mail de test a été envoyé à %{email}
+  please_configure_smtp_settings_first: Veuillez d'abord configurer les paramètres SMTP
+  please_enter_a_valid_email_address: Veuillez saisir une adresse e‑mail valide
+  failed_to_send_test_email: "Échec de l'envoi de l'e‑mail de test : %{error}"
+  a_test_email_will_be_sent_to_this_address: Un e‑mail de test sera envoyé à cette adresse pour vérifier votre configuration SMTP
+  docuseal_smtp_test_email: E‑mail de test SMTP DocuSeal
+  this_is_a_test_email_from_docuseal: Ceci est un e‑mail de test de DocuSeal.
+  if_you_received_this_email_your_smtp_settings_are_working_correctly: Si vous avez reçu cet e‑mail, vos paramètres SMTP fonctionnent correctement.
+  sent_to: "Envoyé à : %{email}"
+  logo_recommendation_title: "Recommandé : Icône/symbole carré"
+  logo_recommendation_square: Utilisez une image carrée (ratio 1:1)
+  logo_recommendation_size: Taille recommandée 200x200 à 500x500 pixels
+  logo_recommendation_no_text: Utilisez une icône ou symbole sans le nom de l'entreprise (le nom s'affiche séparément)
+pt:
+  send_test_email: Enviar e-mail de teste
+  test_smtp_configuration: Testar configuração SMTP
+  test_email_has_been_sent_to: E-mail de teste enviado para %{email}
+  please_configure_smtp_settings_first: Por favor, configure primeiro as definições SMTP
+  please_enter_a_valid_email_address: Por favor, introduza um endereço de e-mail válido
+  failed_to_send_test_email: "Falha ao enviar e-mail de teste: %{error}"
+  a_test_email_will_be_sent_to_this_address: Um e-mail de teste será enviado para este endereço para verificar a sua configuração SMTP
+  docuseal_smtp_test_email: E-mail de teste SMTP DocuSeal
+  this_is_a_test_email_from_docuseal: Este é um e-mail de teste do DocuSeal.
+  if_you_received_this_email_your_smtp_settings_are_working_correctly: Se recebeu este e-mail, as suas definições SMTP estão a funcionar corretamente.
+  sent_to: "Enviado para: %{email}"
+  logo_recommendation_title: "Recomendado: Ícone/símbolo quadrado"
+  logo_recommendation_square: Use uma imagem quadrada (proporção 1:1)
+  logo_recommendation_size: Tamanho recomendado 200x200 a 500x500 pixels
+  logo_recommendation_no_text: Use um ícone ou símbolo sem o nome da empresa (o nome é exibido separadamente)
+de:
+  send_test_email: Test-E-Mail senden
+  test_smtp_configuration: SMTP-Konfiguration testen
+  test_email_has_been_sent_to: Test-E-Mail wurde an %{email} gesendet
+  please_configure_smtp_settings_first: Bitte konfigurieren Sie zuerst die SMTP-Einstellungen
+  please_enter_a_valid_email_address: Bitte geben Sie eine gültige E-Mail-Adresse ein
+  failed_to_send_test_email: "Fehler beim Senden der Test-E-Mail: %{error}"
+  a_test_email_will_be_sent_to_this_address: Eine Test-E-Mail wird an diese Adresse gesendet, um Ihre SMTP-Konfiguration zu überprüfen
+  send_test_reminder: Test-Erinnerung senden
+  test_reminder_email_has_been_sent_to: Test-Erinnerungs-E-Mail wurde an %{email} gesendet
+  a_test_reminder_will_be_sent_to_this_email: Eine Test-Erinnerungs-E-Mail wird an diese Adresse gesendet
+  failed_to_send_test_reminder: "Fehler beim Senden der Test-Erinnerung: %{error}"
+  no_pending_submissions_found_for_testing: Keine ausstehenden Einreichungen zum Testen gefunden. Erstellen Sie zuerst eine Einreichung.
+  no_templates_found_for_testing: Keine Vorlagen zum Testen gefunden. Erstellen Sie zuerst eine Vorlage.
+  docuseal_smtp_test_email: DocuSeal SMTP Test-E-Mail
+  this_is_a_test_email_from_docuseal: Dies ist eine Test-E-Mail von DocuSeal.
+  if_you_received_this_email_your_smtp_settings_are_working_correctly: Wenn Sie diese E-Mail erhalten haben, funktionieren Ihre SMTP-Einstellungen korrekt.
+  sent_to: "Gesendet an: %{email}"
+  preface_email_subject_with: E-Mail-Betreff voranstellen mit
+  preface_subject_hint: 'Fügen Sie ein Präfix für Erinnerungs-E-Mails hinzu, z.B. "Erinnerung: "'
+  logo_recommendation_title: "Empfohlen: Quadratisches Icon/Symbol"
+  logo_recommendation_square: Verwenden Sie ein quadratisches Bild (Seitenverhältnis 1:1)
+  logo_recommendation_size: Empfohlene Größe 200x200 bis 500x500 Pixel
+  logo_recommendation_no_text: Verwenden Sie ein Icon oder Symbol ohne Firmennamen (der Name wird separat angezeigt)
+  about: Über
+  version_information: Versionsinformationen
+  current_version: Aktuelle Version
+  version_source_hint: Versionsinformationen stammen von GitHub-Releases.
+  version_not_available: Versionsinformationen sind nicht verfügbar.
+  links: Links
+  github: GitHub
+  modified_version: Modifizierte Version
+  modified_version_description: Dies ist eine modifizierte Version von DocuSeal mit zusätzlichen Funktionen.
+  about_description: Eine selbst gehostete und quelloffene Webplattform, die sicheres und effizientes digitales Dokumentensignieren und -verarbeiten bietet.
+  separate_multiple_emails_with_comma_or_new_line: Mehrere E-Mails mit Komma oder neuer Zeile trennen
+  accepted: Angenommen
+  invitation_pending: Einladung ausstehend
+  invitation_expired: Einladung abgelaufen
+  invitation_expires_at: 'Einladungslink läuft ab: %{time}'
+  resend_invitation: Einladung erneut senden
+  two_minutes: 2 Minuten (zum Testen)
+nl:
+  send_test_email: Test e-mail verzenden
+  test_smtp_configuration: SMTP-configuratie testen
+  test_email_has_been_sent_to: Test e-mail is verzonden naar %{email}
+  please_configure_smtp_settings_first: Configureer eerst de SMTP-instellingen
+  please_enter_a_valid_email_address: Voer een geldig e-mailadres in
+  failed_to_send_test_email: "Verzenden van test e-mail mislukt: %{error}"
+  a_test_email_will_be_sent_to_this_address: Er wordt een test e-mail naar dit adres verzonden om uw SMTP-configuratie te verifiëren
+  docuseal_smtp_test_email: DocuSeal SMTP test e-mail
+  this_is_a_test_email_from_docuseal: Dit is een test e-mail van DocuSeal.
+  if_you_received_this_email_your_smtp_settings_are_working_correctly: Als u deze e-mail heeft ontvangen, werken uw SMTP-instellingen correct.
+  sent_to: "Verzonden naar: %{email}"
+  logo_recommendation_title: "Aanbevolen: Vierkant icoon/symbool"
+  logo_recommendation_square: Gebruik een vierkante afbeelding (beeldverhouding 1:1)
+  logo_recommendation_size: Aanbevolen grootte 200x200 tot 500x500 pixels
+  logo_recommendation_no_text: Gebruik een icoon of symbool zonder bedrijfsnaam (de naam wordt apart weergegeven)
