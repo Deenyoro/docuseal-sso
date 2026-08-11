@@ -192,8 +192,8 @@ module Templates
       end
     end
 
-    def generate_pdf_preview_from_file(attachment, file_path, page_number)
-      doc = Pdfium::Document.open_file(file_path)
+    def generate_pdf_preview_from_io(attachment, io, page_number)
+      doc = Pdfium::Document.open_io(io)
 
       doc_page = doc.get_page(page_number)
 

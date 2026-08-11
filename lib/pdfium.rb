@@ -98,6 +98,7 @@ class Pdfium
 
   attach_function :FPDF_LoadDocument, %i[string FPDF_STRING], :FPDF_DOCUMENT
   attach_function :FPDF_LoadMemDocument, %i[pointer int FPDF_STRING], :FPDF_DOCUMENT
+  attach_function :FPDF_LoadCustomDocument, %i[pointer FPDF_STRING], :FPDF_DOCUMENT
   attach_function :FPDF_CloseDocument, [:FPDF_DOCUMENT], :void
   attach_function :FPDF_GetPageCount, [:FPDF_DOCUMENT], :int
   attach_function :FPDF_GetLastError, [], :ulong
@@ -453,6 +454,43 @@ class Pdfium
       end
 
       doc = new(doc_ptr, buffer)
+
+      return doc unless block_given?
+
+      begin
+        yield doc
+      ensure
+        doc.close
+      end
+    end
+
+    def self.open_io(io, password = nil)
+      io.binmode
+
+      get_block = FFI::Function.new(:int, %i[pointer ulong pointer ulong]) do |_param, position, out, size|
+        io.seek(position)
+
+        bytes = io.read(size).to_s
+
+        out.put_bytes(0, bytes)
+
+        bytes.bytesize == size ? 1 : 0
+      end
+
+      file_access = Pdfium::FPDF_FILEACCESS.new
+      file_access[:m_FileLen] = io.size
+      file_access[:m_GetBlock] = get_block
+      file_access[:m_Param] = FFI::Pointer::NULL
+
+      doc_ptr = Pdfium.FPDF_LoadCustomDocument(file_access, password)
+
+      if doc_ptr.null?
+        Pdfium.check_last_error('Failed to load document from IO')
+
+        raise PdfiumError, 'Failed to load document from IO, pointer is NULL.'
+      end
+
+      doc = new(doc_ptr, [file_access, get_block, io])
 
       return doc unless block_given?
 
