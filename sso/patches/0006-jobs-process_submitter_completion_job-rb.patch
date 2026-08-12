@@ -1,9 +1,9 @@
 diff --git a/app/jobs/process_submitter_completion_job.rb b/app/jobs/process_submitter_completion_job.rb
-index 135c0c38..7323578c 100644
+index 897ff350..d3362fb8 100644
 --- a/app/jobs/process_submitter_completion_job.rb
 +++ b/app/jobs/process_submitter_completion_job.rb
-@@ -31,16 +31,41 @@ class ProcessSubmitterCompletionJob
-     enqueue_completed_webhooks(submitter, is_all_completed:)
+@@ -49,16 +49,41 @@ class ProcessSubmitterCompletionJob
+     enqueue_completed_webhooks(submitter, is_last:)
    end
  
 +  MAX_RETRY_ATTEMPTS = 5
@@ -46,7 +46,7 @@ index 135c0c38..7323578c 100644
  
      complete_verification_event = complete_verification_events.first
  
-@@ -51,22 +76,9 @@ class ProcessSubmitterCompletionJob
+@@ -69,22 +94,9 @@ class ProcessSubmitterCompletionJob
          complete_verification_event.data['method']
        end
  
