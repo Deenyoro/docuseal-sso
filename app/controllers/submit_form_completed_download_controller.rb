@@ -48,7 +48,7 @@ class SubmitFormCompletedDownloadController < ApplicationController
   private
 
   def submitter_slug
-    params[:submit_form_slug] || params[:submitter_slug] || params[:submitter_id]
+    params[:submit_form_slug] || params[:submitter_slug]
   end
 
   def respond_with_combined(submitter)

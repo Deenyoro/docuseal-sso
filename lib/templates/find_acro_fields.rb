@@ -173,20 +173,20 @@ module Templates
           **attrs,
           type: 'select',
           options: build_options(field[:Opt], 'select'),
-          default_value: field.field_value.to_s.match?(SELECT_PLACEHOLDER_REGEXP) ? nil : field.field_value
+          default_value: field.field_value.to_s.match?(SELECT_PLACEHOLDER_REGEXP) ? nil : field.field_value.presence
         }
       elsif field.field_type == :Ch && field.concrete_field_type == :multi_select && field[:Opt].present?
         {
           **attrs,
           type: 'multiple',
           options: build_options(field[:Opt], 'multiple'),
-          default_value: field.field_value
+          default_value: field.field_value.presence
         }
       elsif field.field_type == :Tx && field.concrete_field_type == :comb_text_field
         {
           **attrs,
           type: 'cells',
-          default_value: field.field_value
+          default_value: field.field_value.presence
         }
       elsif field.field_type == :Tx
         if field[:AA] && ((field[:AA][:F] && field[:AA][:F][:JS].include?('AFDate_')) ||
@@ -199,13 +199,13 @@ module Templates
           {
             **attrs,
             type: 'date',
-            default_value: field.field_value
+            default_value: field.field_value.presence
           }
         else
           {
             **attrs,
             type: 'text',
-            default_value: field.field_value
+            default_value: field.field_value.presence
           }
         end
       elsif field.field_type == :Sig
@@ -234,7 +234,7 @@ module Templates
 
         {
           uuid: SecureRandom.uuid,
-          value: is_option_number || is_skip_single_value ? '' : option
+          value: is_option_number || is_skip_single_value ? '' : option.presence
         }
       end
     end

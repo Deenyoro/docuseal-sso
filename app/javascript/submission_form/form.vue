@@ -560,6 +560,7 @@
             :fields="formulaFields"
             :values="values"
             :readonly-values="readonlyFieldValues"
+            :fetch-options="fetchOptions"
             :provider="paymentProvider"
             @attached="attachments.push($event)"
             @focus="scrollIntoField(currentField)"
@@ -573,6 +574,7 @@
             :empty-value-required-step="emptyValueRequiredStep"
             :field="currentField"
             :submitter-slug="submitterSlug"
+            :fetch-options="fetchOptions"
             :values="values"
             @submit="!isSubmitting && submitStep()"
           />
@@ -585,6 +587,7 @@
             :empty-value-required-step="emptyValueRequiredStep"
             :field="currentField"
             :submitter-slug="submitterSlug"
+            :fetch-options="fetchOptions"
             :values="values"
             @focus="scrollIntoField(currentField)"
             @submit="!isSubmitting && submitStep()"
@@ -1776,7 +1779,7 @@ export default {
         window.location.href = sanitizeUrl(this.completedRedirectUrl)
       } else {
         this.$nextTick(() => {
-          const root = this.$root.$el.parentNode.getRootNode()
+          const root = this.$root.$el.parentNode?.getRootNode() || document
           const completedEl = root.getElementById('form_completed')
 
           if (completedEl) {

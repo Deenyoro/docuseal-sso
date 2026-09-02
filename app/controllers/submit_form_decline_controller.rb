@@ -19,7 +19,7 @@ class SubmitFormDeclineController < ApplicationController
                                                                                                 request)
 
     ApplicationRecord.transaction do
-      @submitter.update!(declined_at: Time.current)
+      @submitter.update!(declined_at: Time.current, values: @submitter.preferences['default_values'] || {})
 
       SubmissionEvents.create_with_tracking_data(@submitter, 'decline_form', request, { reason: params[:reason] })
     end

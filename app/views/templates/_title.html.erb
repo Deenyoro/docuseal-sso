@@ -64,8 +64,12 @@
     <% end %>
   </div>
   <div class="flex flex-wrap gap-2 w-full md:w-fit md:justify-between md:flex-none md:pt-1">
-    <% if !template.archived_at? && can?(:destroy, template) %>
-      <%= button_to button_title(title: t('archive'), disabled_with: t('archiving')[..-4], title_class: 'inline', icon: svg_icon('archive', class: 'w-6 h-6')), template_path(template), class: 'btn btn-outline btn-sm w-full', form_class: 'flex-1', method: :delete %>
+    <% if can?(:destroy, template) %>
+      <% if template.archived_at? %>
+        <%= button_to button_title(title: t('restore'), disabled_with: t('restoring')[..-4], icon: svg_icon('rotate', class: 'w-6 h-6')), template_restore_index_path(template), class: 'btn btn-outline btn-sm w-full', form_class: 'flex-1' %>
+      <% else %>
+        <%= button_to button_title(title: t('archive'), disabled_with: t('archiving')[..-4], title_class: 'inline', icon: svg_icon('archive', class: 'w-6 h-6')), template_path(template), class: 'btn btn-outline btn-sm w-full', form_class: 'flex-1', method: :delete %>
+      <% end %>
     <% end %>
     <% if can?(:create, current_account.templates.new(author: current_user)) %>
       <div class="flex-1">
@@ -99,9 +103,6 @@
       <% end %>
     <% end %>
     <% if template.archived_at? %>
-      <% if can?(:destroy, template) %>
-        <%= button_to button_title(title: t('restore'), disabled_with: t('restoring')[..-4], icon: svg_icon('rotate', class: 'w-6 h-6')), template_restore_index_path(template), class: 'btn btn-outline btn-sm w-full', form_class: 'flex-1' %>
-      <% end %>
       <div class="flex-1">
         <%= link_to template_preview_path(template), class: 'btn btn-outline btn-sm w-full' do %>
           <span class="flex items-center justify-center space-x-2">

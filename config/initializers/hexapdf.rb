@@ -112,6 +112,8 @@ module HexaPDF
   end
 
   module CycleSafeInheritedValue
+    using HexaPDF::Type::AcroForm::Field::HashRefinement
+
     def inherited_value(field, name)
       seen = Set.new.compare_by_identity
       seen << field.value

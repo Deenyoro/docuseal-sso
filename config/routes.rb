@@ -142,7 +142,8 @@ Rails.application.routes.draw do
     get :completed
   end
 
-  resource :resubmit_form, controller: 'start_form', only: :update
+  resource :resubmit_form, controller: 'start_form_resubmit', only: :update
+  resources :start_form_self, only: :update
   resource :submit_form_email_2fa, only: %i[create update]
   resources :start_form_email_2fa_send, only: :create
 
@@ -174,8 +175,11 @@ Rails.application.routes.draw do
 
   resources :submitters, only: %i[] do
     resources :download, only: %i[index], controller: 'submitters_download', constraints: { submitter_id: /\d+/ }
-    resources :download, only: %i[index], controller: 'submit_form_completed_download'
     resources :send_email, only: %i[create], controller: 'submitters_send_email'
+  end
+
+  resources :submitters, only: %i[], param: 'slug' do
+    resources :download, only: %i[index], controller: 'submit_form_completed_download'
   end
 
   resources :settings, only: %i[index]

@@ -121,6 +121,11 @@ export default {
       type: String,
       required: false,
       default: ''
+    },
+    fetchOptions: {
+      type: Object,
+      required: false,
+      default: () => ({})
     }
   },
   emits: ['focus', 'submit', 'update:model-value', 'attached'],
@@ -234,7 +239,8 @@ export default {
           body: JSON.stringify({
             submitter_slug: this.submitterSlug
           }),
-          headers: { 'Content-Type': 'application/json' }
+          ...this.fetchOptions,
+          headers: { 'Content-Type': 'application/json', ...this.fetchOptions.headers }
         }).then(async (resp) => {
           if (resp.status === 422 || resp.status === 500) {
             this.isProcessing = false
@@ -274,7 +280,8 @@ export default {
           check_status: checkStatus,
           referer: this.normalizedPaymentUrl()
         }),
-        headers: { 'Content-Type': 'application/json' }
+        ...this.fetchOptions,
+        headers: { 'Content-Type': 'application/json', ...this.fetchOptions.headers }
       }).then(async (resp) => {
         if (resp.status === 422 || resp.status === 500) {
           const data = await resp.json()

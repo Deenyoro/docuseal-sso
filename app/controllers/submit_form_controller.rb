@@ -107,6 +107,8 @@ class SubmitFormController < ApplicationController
     submitter_version = SubmitterVersion.find_by!(slug: params[:slug] || params[:submit_form_slug])
 
     @submitter = submitter_version.submitter
+
+    maybe_render_locked_page
   end
 
   private

@@ -110,7 +110,7 @@
             data-turbo="false"
             class="inline"
             method="post"
-            :action="`/d/${template.slug}`"
+            :action="`/start_form_self/${template.id}`"
             @submit="maybeShowErrorTemplateAlert"
           >
             <input
@@ -123,12 +123,6 @@
               type="hidden"
               name="authenticity_token"
               :value="authenticityToken"
-              autocomplete="off"
-            >
-            <input
-              type="hidden"
-              name="selfsign"
-              value="true"
               autocomplete="off"
             >
             <button
