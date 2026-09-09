@@ -110,6 +110,26 @@ sso/
 
 ## Syncing upstream
 
+**Nothing to press.** `.github/workflows/upstream-auto-sync.yml` runs daily at
+04:00 UTC (and on manual dispatch) and does the whole sync, only pushing a tree
+it has proven still builds with the unlock intact:
+
+1. fetch `upstream/master`; stop if there is nothing new,
+2. stamp a recovery ref on **origin** (`refs/sso-presync/<timestamp>`),
+3. merge `upstream/master` — conflict-free by construction, because the fork's
+   entire footprint is `sso/` plus its own two workflow files,
+4. `heal-patches.sh` — re-anchor drifted diffs (`git apply --3way`), regenerate
+   them exactly and commit the refresh, so drift never accumulates,
+5. gate: `apply-overlay.sh` + `apply-patches.sh` + `verify-overlay.sh` against a
+   throwaway copy of the merged tree — every SSO/SMS marker must be present,
+6. push, then dispatch the image build.
+
+If any gate fails nothing is pushed, the fork stays on the last known-good tree,
+and an issue is filed with the log. `sync-canary.yml` still runs the same
+simulation daily as an early warning.
+
+By hand, if you want to drive it yourself:
+
 ```bash
 git remote add upstream https://github.com/docusealco/docuseal.git   # once
 git fetch upstream

@@ -45,7 +45,7 @@ jobs:
           # tree (the overlay is applied at image build, which fail-louds on
           # its own) — they can go red purely from upstream's state, so they
           # are disabled along with anything else upstream ships or adds.
-          keep=".github/workflows/docuseal-sso-build.yml .github/workflows/sync-canary.yml"
+          keep=".github/workflows/docuseal-sso-build.yml .github/workflows/sync-canary.yml .github/workflows/upstream-auto-sync.yml"
           gh api "repos/${{ github.repository }}/actions/workflows" --paginate \
             -q '.workflows[] | [(.id|tostring), .state, .path] | @tsv' |
           while IFS=$'\t' read -r id state path; do
