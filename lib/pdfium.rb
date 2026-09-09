@@ -105,6 +105,7 @@ class Pdfium
   attach_function :FPDF_LoadCustomDocument, %i[pointer FPDF_STRING], :FPDF_DOCUMENT
   attach_function :FPDF_CloseDocument, [:FPDF_DOCUMENT], :void
   attach_function :FPDF_GetPageCount, [:FPDF_DOCUMENT], :int
+  attach_function :FPDF_GetPageSizeByIndexF, %i[FPDF_DOCUMENT int pointer], :int
   attach_function :FPDF_GetLastError, [], :ulong
   attach_function :FPDF_GetTrailerEnds, %i[FPDF_DOCUMENT pointer ulong], :ulong
   attach_function :FPDF_DocumentHasValidCrossReferenceTable, [:FPDF_DOCUMENT], :int
@@ -282,6 +283,7 @@ class Pdfium
   attach_function :FPDFPage_GetAnnotCount, [:FPDF_PAGE], :int
 
   attach_function :FPDFPage_GetAnnotCountRaw, %i[FPDF_DOCUMENT int], :int
+  attach_function :FPDFPage_GetRotationRaw, %i[FPDF_DOCUMENT int], :int
   attach_function :FPDFPage_GetAnnot, %i[FPDF_PAGE int], :FPDF_ANNOTATION
   attach_function :FPDFPage_CloseAnnot, [:FPDF_ANNOTATION], :void
   attach_function :FPDFAnnot_GetSubtype, [:FPDF_ANNOTATION], :int
@@ -366,6 +368,11 @@ class Pdfium
            :top, :float,
            :right, :float,
            :bottom, :float
+  end
+
+  class FS_SIZEF < FFI::Struct
+    layout :width, :float,
+           :height, :float
   end
 
   class FS_MATRIX < FFI::Struct
@@ -531,6 +538,8 @@ class Pdfium
 
       @pages = {}
       @annot_counts = {}
+      @page_sizes = {}
+      @page_rotations = {}
       @closed = false
       @source_buffer = source_buffer
       @form_handle = FFI::Pointer::NULL
@@ -553,6 +562,23 @@ class Pdfium
 
     def page_count
       @page_count ||= Pdfium.FPDF_GetPageCount(@document_ptr)
+    end
+
+    def page_size(page_index)
+      @page_sizes[page_index] ||=
+        begin
+          size = Pdfium::FS_SIZEF.new
+
+          [size[:width], size[:height]] if Pdfium.FPDF_GetPageSizeByIndexF(@document_ptr, page_index, size) == 1
+        end
+    end
+
+    def reset_page_size(page_index)
+      @page_sizes.delete(page_index)
+    end
+
+    def page_rotation(page_index)
+      @page_rotations[page_index] ||= Pdfium.FPDFPage_GetRotationRaw(@document_ptr, page_index)
     end
 
     def encrypted?
@@ -982,6 +1008,8 @@ class Pdfium
 
     def rotation=(value)
       Pdfium.FPDFPage_SetRotation(@page_ptr, value)
+
+      @document.reset_page_size(@page_index)
 
       @rotation = value
     end
@@ -2278,13 +2306,13 @@ class Pdfium
       [PageObject, *to_a].hash
     end
 
-    private
-
     def object_ptr
       page.ensure_not_closed!
 
       Pdfium.FPDFPage_GetObject(page.page_ptr, index)
     end
+
+    private
 
     def read_bounds
       buffer = Array.new(4) { FFI::MemoryPointer.new(:float) }

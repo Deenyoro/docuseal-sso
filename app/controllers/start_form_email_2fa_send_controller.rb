@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class StartFormEmail2faSendController < ApplicationController
+  layout 'form'
+
   around_action :with_browser_locale
 
   skip_before_action :authenticate_user!
@@ -23,6 +25,10 @@ class StartFormEmail2faSendController < ApplicationController
 
     redirect_to start_form_path(@template.slug, params: submitter_params.merge(email_verification: true)),
                 **redir_params
+  rescue Submitters::BouncedEmail => e
+    @error_message = e.message
+
+    render 'start_form/error', status: :unprocessable_content
   rescue Submitters::UnableToSendCode => e
     redirect_to start_form_path(@template.slug, params: submitter_params.merge(email_verification: true)),
                 alert: e.message

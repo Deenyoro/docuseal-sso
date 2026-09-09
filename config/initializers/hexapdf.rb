@@ -46,6 +46,20 @@ module HexaPDF
       def color_space(name)
         GlobalConfiguration.constantize('color_space.map', name).new
       end
+
+      def [](name)
+        return super unless value[name].nil? && INHERITABLE_FIELDS.include?(name)
+
+        seen = Set.new.compare_by_identity
+        seen << value
+        node = self
+
+        while node.value[name].nil? && (parent = node[:Parent]) && seen.add?(parent.value)
+          node = parent
+        end
+
+        node == self || node.value[name].nil? ? super : node[name]
+      end
     end
 
     # fix NoMethodError: undefined method `field_value' for #<HexaPDF::Type::AcroForm::Field
@@ -169,8 +183,53 @@ module HexaPDF
       end
     end
   end
+
+  module CycleSafePageAncestors
+    def index
+      acyclic_ancestors? ? super : 0
+    end
+
+    def ancestor_nodes
+      acyclic_ancestors? ? super : []
+    end
+
+    private
+
+    def perform_validation
+      super if acyclic_ancestors?
+    end
+
+    def acyclic_ancestors?
+      seen = Set.new.compare_by_identity
+      node = self
+      node = node[:Parent] while node && seen.add?(node.value)
+      node.nil?
+    end
+  end
+
+  module CycleSafeOutlineEndpoints
+    private
+
+    def perform_validation
+      first = value[:First]
+      last = value[:Last]
+
+      if (first && !last) || (!first && last)
+        node, dir = first ? [self[:First], :Next] : [self[:Last], :Prev]
+        seen = Set.new.compare_by_identity
+        node = node[dir] while node && seen.add?(node.value)
+
+        return if node
+      end
+
+      super
+    end
+  end
 end
 
 HexaPDF::Type::AcroForm::Field.singleton_class.prepend(HexaPDF::CycleSafeInheritedValue)
 HexaPDF::Type::AcroForm::Field.prepend(HexaPDF::CycleSafeFullFieldName)
 HexaPDF::Type::AcroForm::Form.prepend(HexaPDF::CycleSafeEachField)
+HexaPDF::Type::Page.prepend(HexaPDF::CycleSafePageAncestors)
+HexaPDF::Type::Outline.prepend(HexaPDF::CycleSafeOutlineEndpoints)
+HexaPDF::Type::OutlineItem.prepend(HexaPDF::CycleSafeOutlineEndpoints)

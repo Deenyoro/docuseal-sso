@@ -87,6 +87,10 @@ class StartFormResubmitController < ApplicationController
     end
   rescue Submitters::StartForm::NotSaved
     render 'start_form/show', status: :unprocessable_content
+  rescue Submitters::BouncedEmail => e
+    @error_message = e.message
+
+    render 'start_form/error', status: :unprocessable_content
   rescue Submitters::UnableToSendCode, Submitters::InvalidOtp => e
     flash.now[:alert] = e.message
 

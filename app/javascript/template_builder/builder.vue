@@ -3525,6 +3525,8 @@ export default {
         this.onChange(this.template)
       }
 
+      this.pushUndo()
+
       if (!this.autosave && !force) {
         return Promise.resolve({})
       }
@@ -3534,8 +3536,6 @@ export default {
           this.$el.closest('template-builder').dataset.template = JSON.stringify(this.template)
         }
       })
-
-      this.pushUndo()
 
       return this.baseFetch(`/templates/${this.template.id}`, {
         method: 'PUT',

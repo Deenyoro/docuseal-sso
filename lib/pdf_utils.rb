@@ -6,24 +6,6 @@ module PdfUtils
 
   module_function
 
-  def encrypted?(data, password: nil)
-    HexaPDF::Document.new(io: StringIO.new(data), decryption_opts: { password: })
-
-    false
-  rescue HexaPDF::EncryptionError
-    true
-  end
-
-  def decrypt(data, password)
-    decrypted_io = StringIO.new
-
-    Pdfium::Document.open_bytes(data, password) do |doc|
-      doc.save(decrypted_io, flags: Pdfium::FPDF_REMOVE_SECURITY)
-    end
-
-    decrypted_io.tap(&:rewind).read
-  end
-
   def merge(io_files)
     merged_content = StringIO.new
 

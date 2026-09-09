@@ -173,7 +173,7 @@ module VerifyPdfSignature
     io.seek(0)
 
     Pdfium::Document.open_bytes(io.read(signed_end)) do |signed_document|
-      next false unless signed_document.valid_cross_reference_table?
+      next true unless signed_document.valid_cross_reference_table?
 
       serialized_document(signed_document) != serialized_document(document)
     end
@@ -182,11 +182,18 @@ module VerifyPdfSignature
   def serialized_document(document)
     pages = (0...document.page_count).map do |index|
       page = document.get_page(index)
+      objects = page.objects.map { |object| [*object.to_a, image_digest(page, object)] }
 
-      [page.rotation, page.objects, page.annotations, page.text]
+      [page.rotation, objects, page.annotations, page.text]
     end
 
     [pages, document.bookmarks]
+  end
+
+  def image_digest(page, object)
+    return unless object.image?
+
+    Digest::SHA256.hexdigest(page.extract_image_bitmap(object.object_ptr)[:data])
   end
 
   def signed_data(io, byte_range)

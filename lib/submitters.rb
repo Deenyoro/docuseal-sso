@@ -11,6 +11,7 @@ module Submitters
   }.freeze
 
   UnableToSendCode = Class.new(StandardError)
+  BouncedEmail = Class.new(UnableToSendCode)
   InvalidOtp = Class.new(StandardError)
   MaliciousFileExtension = Class.new(StandardError)
   ParamsError = Class.new(StandardError)
@@ -143,7 +144,7 @@ module Submitters
   def normalize_preferences(account, user, params)
     preferences = {}
 
-    message_params = params['message'].presence || params.slice('subject', 'body').presence
+    message_params = (params['message'].presence || params.slice('subject', 'body')).compact_blank
 
     if message_params.present?
       email_message = EmailMessages.find_or_create_for_account_user(account, user,
@@ -243,11 +244,22 @@ module Submitters
   def send_shared_link_email_verification_code(submitter, request:)
     RateLimit.call("send-otp-code-#{request.remote_ip}", limit: 2, ttl: 45.seconds, enabled: true)
 
+    if Docuseal.multitenant? && email_bounced_recently?(submitter.email)
+      Rollbar.warning("Bounced OTP email for template: #{submitter.submission.template.id}") if defined?(Rollbar)
+
+      raise BouncedEmail, I18n.t(:verification_email_bounced)
+    end
+
     TemplateMailer.otp_verification_email(submitter.submission.template, email: submitter.email).deliver_later!
   rescue RateLimit::LimitApproached
     Rollbar.warning("Limit verification code for template: #{submitter.submission.template.id}") if defined?(Rollbar)
 
     raise UnableToSendCode, I18n.t('too_many_attempts')
+  end
+
+  def email_bounced_recently?(email)
+    EmailEvent.exists?(email:, event_type: %w[bounce soft_bounce permanent_bounce],
+                       event_datetime: 24.hours.ago..Time.current)
   end
 
   def verify_link_otp!(otp, submitter)

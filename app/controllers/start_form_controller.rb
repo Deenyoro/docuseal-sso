@@ -162,6 +162,10 @@ class StartFormController < ApplicationController
     end
   rescue Submitters::StartForm::NotSaved
     render :show, status: :unprocessable_content
+  rescue Submitters::BouncedEmail => e
+    @error_message = e.message
+
+    render :error, status: :unprocessable_content
   rescue Submitters::UnableToSendCode, Submitters::InvalidOtp => e
     redirect_to start_form_path(template.slug, params: submitter_params.merge(email_verification: true)),
                 alert: e.message

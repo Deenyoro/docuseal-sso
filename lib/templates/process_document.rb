@@ -22,16 +22,10 @@ module Templates
     def call(attachment, data, extract_fields: false, max_pages: MAX_NUMBER_OF_PAGES_PROCESSED, doc: nil)
       if attachment.content_type == PDF_CONTENT_TYPE
         if extract_fields && data.size < MAX_FLATTEN_FILE_SIZE
-          if doc
-            fields = Templates::FindPdfiumAcroFields.call(attachment, doc, data)
-          else
-            pdf = HexaPDF::Document.new(io: StringIO.new(data))
-
-            fields = Templates::FindAcroFields.call(pdf, attachment, data)
-          end
+          fields = Templates::FindPdfiumAcroFields.call(attachment, doc, data)
         end
 
-        generate_pdf_preview_images(attachment, data, pdf, max_pages:, doc:)
+        generate_pdf_preview_images(attachment, data, max_pages:, doc:)
 
         attachment.metadata['pdf']['fields'] = fields if fields
       elsif attachment.image?
@@ -41,27 +35,13 @@ module Templates
       attachment
     end
 
-    def process(attachment, data, extract_fields: false, doc: nil)
+    def process(attachment, data, doc:, extract_fields: false)
       if attachment.content_type == PDF_CONTENT_TYPE && extract_fields && data.size < MAX_FLATTEN_FILE_SIZE
-        if doc
-          fields = Templates::FindPdfiumAcroFields.call(attachment, doc, data)
-        else
-          pdf = HexaPDF::Document.new(io: StringIO.new(data))
-
-          fields = Templates::FindAcroFields.call(pdf, attachment, data)
-        end
-      end
-
-      if doc
-        number_of_pages = doc.page_count
-      else
-        pdf ||= HexaPDF::Document.new(io: StringIO.new(data))
-
-        number_of_pages = pdf.pages.size
+        fields = Templates::FindPdfiumAcroFields.call(attachment, doc, data)
       end
 
       attachment.metadata['pdf'] ||= {}
-      attachment.metadata['pdf']['number_of_pages'] = number_of_pages
+      attachment.metadata['pdf']['number_of_pages'] = doc.page_count
       attachment.metadata['pdf']['fields'] = fields if fields
 
       attachment
@@ -88,17 +68,10 @@ module Templates
       )
     end
 
-    def generate_pdf_preview_images(attachment, data, pdf = nil, max_pages: MAX_NUMBER_OF_PAGES_PROCESSED, doc: nil)
+    def generate_pdf_preview_images(attachment, data, doc:, max_pages: MAX_NUMBER_OF_PAGES_PROCESSED)
       ActiveStorage::Attachment.where(name: ATTACHMENT_NAME, record: attachment).destroy_all
 
-      if doc
-        number_of_pages = doc.page_count
-      else
-        pdf ||= HexaPDF::Document.new(io: StringIO.new(data))
-        number_of_pages = pdf.pages.size
-
-        data = maybe_flatten_form(data, pdf)
-      end
+      number_of_pages = doc.page_count
 
       attachment.metadata['pdf'] ||= {}
       attachment.metadata['pdf']['number_of_pages'] = number_of_pages
@@ -109,20 +82,19 @@ module Templates
 
       max_pages_to_process = data.size < GENERATE_PREVIEW_SIZE_LIMIT ? max_pages : 1
 
-      generate_document_preview_images(attachment, data, 0..[number_of_pages - 1, max_pages_to_process].min, doc:)
+      generate_document_preview_images(attachment, 0..[number_of_pages - 1, max_pages_to_process].min, doc:)
     end
 
-    def generate_document_preview_images(attachment, data, range, concurrency: CONCURRENCY, doc: nil)
-      flatten_pages = doc&.form?
-      pdfium_doc = doc || Pdfium::Document.open_bytes(data)
+    def generate_document_preview_images(attachment, range, doc:, concurrency: CONCURRENCY)
+      flatten_pages = doc.form?
 
       pool = Concurrent::FixedThreadPool.new(concurrency)
 
       promises =
         range.map do |page_number|
-          doc_page = pdfium_doc.get_page(page_number)
+          doc_page = doc.get_page(page_number)
 
-          hide_placeholder_widgets(doc_page, hide_empty: !flatten_pages) if doc
+          hide_placeholder_widgets(doc_page, hide_empty: !flatten_pages)
           doc_page.flatten if flatten_pages
 
           bytes, width, height = doc_page.render_to_bitmap(width: MAX_WIDTH)
@@ -146,7 +118,6 @@ module Templates
         end
       end
     ensure
-      pdfium_doc&.close if doc.nil?
       pool&.kill
     end
 
@@ -162,7 +133,7 @@ module Templates
           if value.blank?
             next unless hide_empty
           elsif handle.option_labels.blank? ||
-                !value.match?(FindAcroFields::SELECT_PLACEHOLDER_REGEXP)
+                !value.match?(FindPdfiumAcroFields::SELECT_PLACEHOLDER_REGEXP)
             next
           end
 
@@ -192,33 +163,6 @@ module Templates
       blob.upload(StringIO.new(data))
 
       blob
-    end
-
-    def maybe_flatten_form(data, pdf)
-      return data if data.size > MAX_FLATTEN_FILE_SIZE
-      return data if pdf.acro_form.blank?
-
-      io = StringIO.new
-
-      pdf.acro_form.each_field do |field|
-        next if field.field_type != :Ch ||
-                field[:Opt].blank? ||
-                %i[combo_box editable_combo_box].exclude?(field.concrete_field_type) ||
-                !field.field_value.to_s.match?(FindAcroFields::SELECT_PLACEHOLDER_REGEXP)
-
-        field[:V] = ''
-      end
-
-      pdf.acro_form.create_appearances(force: true) if pdf.acro_form[:NeedAppearances]
-      pdf.acro_form.flatten
-
-      pdf.write(io, incremental: false, validate: false)
-
-      io.string
-    rescue StandardError
-      raise if Rails.env.development?
-
-      data
     end
 
     def normalize_attachment_fields(template, attachments = template.documents)

@@ -6,6 +6,31 @@ module Templates
     SKIP_FIELD_TYPES = %i[unknown pushbutton].freeze
     TEXT_OPERATOR_REGEXP = /\bT[jJ]\b/
 
+    FIELD_NAME_REGEXP = /\A(?=.*\p{L})[\p{L}\d\s-]+\z/
+    SKIP_FIELD_DESCRIPTION = %w[undefined].freeze
+    SELECT_PLACEHOLDER_REGEXP = /\b(
+      Select      |
+      Choose      |
+      Wählen      |
+      Auswählen   |
+      Sélectionner|
+      Choisir     |
+      Seleccionar |
+      Elegir      |
+      Seleziona   |
+      Scegliere   |
+      Selecionar  |
+      Escolher
+    )\b/ix
+
+    DATE_FORMAT_REGEXP = %r{[myd]{2,4}[-\\/\s.][myd]{2,4}[-\\/\s.][myd]{2,4}}i
+
+    FIELD_ALIGNMENT = {
+      0 => 'left',
+      1 => 'center',
+      2 => 'right'
+    }.freeze
+
     module_function
 
     def call(attachment, doc, data)
@@ -108,12 +133,12 @@ module Templates
     def build_field_properties(widgets)
       field = widgets.first.field
 
-      field_name = field.name if field.name.match?(FindAcroFields::FIELD_NAME_REGEXP)
+      field_name = field.name if field.name.match?(FIELD_NAME_REGEXP)
 
       attrs = { name: field_name.to_s }
       attrs[:description] = field.alternate_name if field.alternate_name.present? &&
                                                     field.alternate_name != field.name &&
-                                                    !field.alternate_name.in?(FindAcroFields::SKIP_FIELD_DESCRIPTION)
+                                                    !field.alternate_name.in?(SKIP_FIELD_DESCRIPTION)
 
       case field.type
       when :checkbox, :radio
@@ -172,7 +197,7 @@ module Templates
         **attrs,
         type: 'select',
         options: build_options(field.options, 'select'),
-        default_value: value.to_s.match?(FindAcroFields::SELECT_PLACEHOLDER_REGEXP) ? nil : value
+        default_value: value.to_s.match?(SELECT_PLACEHOLDER_REGEXP) ? nil : value
       }
     end
 
@@ -183,7 +208,7 @@ module Templates
     end
 
     def build_text_properties(attrs, field)
-      preferences = { align: FindAcroFields::FIELD_ALIGNMENT.fetch(field.quadding.to_i, 'left') }
+      preferences = { align: FIELD_ALIGNMENT.fetch(field.quadding.to_i, 'left') }
 
       attrs = { **attrs, preferences: }
 
@@ -191,7 +216,7 @@ module Templates
         { **attrs, type: 'cells', default_value: field.value.presence }
       elsif date?(field)
         format = [field.format_js, field.keystroke_js].compact
-                                                      .filter_map { |js| js[FindAcroFields::DATE_FORMAT_REGEXP] }
+                                                      .filter_map { |js| js[DATE_FORMAT_REGEXP] }
                                                       .first
 
         preferences[:format] = format.upcase if format
@@ -218,7 +243,7 @@ module Templates
           option = option.to_s.encode('utf-8', invalid: :replace, undef: :replace, replace: '')
         end
 
-        next if type == 'select' && option.to_s.match?(FindAcroFields::SELECT_PLACEHOLDER_REGEXP)
+        next if type == 'select' && option.to_s.match?(SELECT_PLACEHOLDER_REGEXP)
 
         {
           uuid: SecureRandom.uuid,
