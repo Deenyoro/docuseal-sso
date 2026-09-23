@@ -70,9 +70,16 @@ build:
       fi
       echo "$TAGS" > .tags
       echo "Building: $TAGS"
-    # The repo's own build path: stage the committed tree, apply the overlay
-    # and patches, build with upstream's Dockerfile.
-    - bash sso/script/build-local.sh docuseal-sso:candidate
+    # Same steps as sso/script/build-local.sh, run directly in the job: that
+    # script bind-mounts the staged tree into a helper container, which cannot
+    # work here because the Docker daemon is a separate service container.
+    - |
+      STAGE="$CI_PROJECT_DIR/.sso-stage"
+      rm -rf "$STAGE" && mkdir -p "$STAGE"
+      echo "Staging the committed tree so a dirty checkout cannot leak into the image"
+      git archive HEAD | tar -x -C "$STAGE"
+      ( cd "$STAGE" && bash sso/script/apply-overlay.sh && bash sso/script/apply-patches.sh && bash sso/script/verify-overlay.sh )
+      docker build -f "$STAGE/Dockerfile" -t docuseal-sso:candidate "$STAGE"
     - |
       if [ "${DOCKER_PUSH:-true}" != "true" ]; then
         echo "DOCKER_PUSH=$DOCKER_PUSH: built but not published"
