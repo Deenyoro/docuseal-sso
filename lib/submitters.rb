@@ -16,16 +16,6 @@ module Submitters
   MaliciousFileExtension = Class.new(StandardError)
   ParamsError = Class.new(StandardError)
 
-  DANGEROUS_EXTENSIONS = Set.new(%w[
-    exe com bat cmd scr pif vbs vbe js jse wsf wsh msi msp
-    hta cpl jar app deb rpm dmg pkg mpkg dll so dylib sys
-    inf reg ps1 psm1 psd1 ps1xml psc1 pssc bat cmd vb vba
-    sh bash zsh fish run out bin elf gadget workflow lnk scf
-    url desktop application action workflow apk ipa xap appx
-    appxbundle msix msixbundle diagcab diagpkg cpl msc ocx
-    drv scr ins isp mst paf prf shb shs slk ws wsc inf1 inf2
-  ].freeze)
-
   FILES_TTL = 5.minutes
 
   module_function
@@ -127,11 +117,9 @@ module Submitters
   def create_attachment!(submitter, file, metadata: {})
     raise ParamsError, 'file param is missing' if file.blank?
 
-    extension = File.extname(file.original_filename).delete_prefix('.').downcase
+    extension = FilenameUtils.dangerous_extension(file.original_filename)
 
-    if DANGEROUS_EXTENSIONS.include?(extension)
-      raise MaliciousFileExtension, "File type '.#{extension}' is not allowed."
-    end
+    raise MaliciousFileExtension, "File type '.#{extension}' is not allowed." if extension
 
     blob = ActiveStorage::Blob.create_and_upload!(io: file.tap(&:rewind).open,
                                                   filename: file.original_filename,
@@ -163,6 +151,21 @@ module Submitters
     preferences['completed_redirect_url'] = params['completed_redirect_url'] if params.key?('completed_redirect_url')
 
     preferences
+  end
+
+  def fetch_values_for_delegate(submitter)
+    fields = submitter.submission.template_fields || submitter.template.fields
+    default_values = submitter.preferences['default_values'] || {}
+
+    field_uuids = fields.filter_map do |field|
+      next if field['submitter_uuid'] != submitter.uuid
+      next unless field['type'].in?(%w[signature phone verification kba initials])
+      next if default_values[field['uuid']].present?
+
+      field['uuid']
+    end
+
+    submitter.values.except(*field_uuids)
   end
 
   def send_signature_requests(submitters, delay_seconds: nil)
@@ -238,7 +241,7 @@ module Submitters
       I18n.l(completed_at.in_time_zone(submitter.account.timezone), format: :short)
     end
 
-    "#{filename}.#{blob.filename.extension}"
+    "#{filename}.#{blob.filename.extension}".tr('/', '-')
   end
 
   def send_shared_link_email_verification_code(submitter, request:)
