@@ -1,0 +1,100 @@
+# DocuSeal SSO fork image, built on GitLab and mirrored to GHCR.
+#
+# Ported from .github/workflows/docuseal-sso-build.yml. The GitHub job also
+# disabled upstream workflows and pushed refreshed patches back to the repo;
+# neither belongs in a GitLab build. Here CI only VERIFIES the patches and
+# fails if they drifted, so builds stay reproducible and need no write access.
+#
+# Runs on a push to the default branch, a v* tag, the weekly schedule, or
+# manually. DOCKER_PUSH=false builds without publishing.
+
+stages: [test, build]
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v/
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "web"
+    - if: $CI_PIPELINE_SOURCE == "api"
+
+variables:
+  GIT_DEPTH: "0"
+
+verify-patches:
+  stage: test
+  tags: [linux]
+  image: alpine:3.20
+  script:
+    - apk add --no-cache bash git patch rsync >/dev/null
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+    # Re-anchors drifted patches in the working tree only. A dirty sso/patches
+    # afterwards means the committed patches no longer apply to upstream.
+    - bash sso/script/heal-patches.sh
+    - |
+      if ! git diff --quiet -- sso/patches; then
+        echo
+        echo "Patches drifted from upstream and were re-anchored for this build only."
+        git --no-pager diff --stat -- sso/patches
+        echo
+        echo "Fix it locally, review the result and commit it:"
+        echo "    bash sso/script/heal-patches.sh && git add sso/patches && git commit"
+        exit 1
+      fi
+    - echo "All patches apply exactly."
+
+build:
+  stage: build
+  tags: [linux]
+  image: docker:27
+  services: ["docker:27-dind"]
+  needs: [verify-patches]
+  timeout: 3h
+  variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_VERIFY: "1"
+    DOCKER_CERT_PATH: /certs/client
+    DOCKER_BUILDKIT: "1"
+    KUBERNETES_CPU_LIMIT: "16"
+    KUBERNETES_MEMORY_LIMIT: 32Gi
+    KUBERNETES_EPHEMERAL_STORAGE_LIMIT: 120Gi
+  script:
+    - apk add --no-cache bash git patch rsync >/dev/null
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+    - for i in $(seq 1 30); do docker info >/dev/null 2>&1 && break; sleep 2; done
+    - |
+      DATE_TAG="$(date -u +%Y.%m.%d)-${CI_COMMIT_SHA:0:8}"
+      TAGS="sha-${CI_COMMIT_SHORT_SHA} ${DATE_TAG}"
+      if [ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ] || [ -n "$CI_COMMIT_TAG" ]; then
+        TAGS="$TAGS latest"
+      fi
+      echo "$TAGS" > .tags
+      echo "Building: $TAGS"
+    # Same steps as sso/script/build-local.sh, run directly in the job: that
+    # script bind-mounts the staged tree into a helper container, which cannot
+    # work here because the Docker daemon is a separate service container.
+    - |
+      STAGE="$CI_PROJECT_DIR/.sso-stage"
+      rm -rf "$STAGE" && mkdir -p "$STAGE"
+      echo "Staging the committed tree so a dirty checkout cannot leak into the image"
+      git archive HEAD | tar -x -C "$STAGE"
+      ( cd "$STAGE" && bash sso/script/apply-overlay.sh && bash sso/script/apply-patches.sh && bash sso/script/verify-overlay.sh )
+      docker build -f "$STAGE/Dockerfile" -t docuseal-sso:candidate "$STAGE"
+    - |
+      if [ "${DOCKER_PUSH:-true}" != "true" ]; then
+        echo "DOCKER_PUSH=$DOCKER_PUSH: built but not published"
+        exit 0
+      fi
+      echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+      for t in $(cat .tags); do
+        docker tag docuseal-sso:candidate "$CI_REGISTRY_IMAGE:$t"
+        docker push "$CI_REGISTRY_IMAGE:$t"
+      done
+      if [ -n "$GHCR_TOKEN" ]; then
+        echo "$GHCR_TOKEN" | docker login -u "${GHCR_USER:-Deenyoro}" --password-stdin ghcr.io
+        for t in $(cat .tags); do
+          docker tag docuseal-sso:candidate "ghcr.io/${GHCR_OWNER:-deenyoro}/docuseal-sso:$t"
+          docker push "ghcr.io/${GHCR_OWNER:-deenyoro}/docuseal-sso:$t"
+        done
+      fi
+      echo "Published: $(cat .tags)"
