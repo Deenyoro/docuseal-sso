@@ -1,62 +1,56 @@
 diff --git a/app/views/shared/_settings_nav.html.erb b/app/views/shared/_settings_nav.html.erb
-index f091df45..445a4454 100644
+index ae8e9d29..f66bc4a8 100644
 --- a/app/views/shared/_settings_nav.html.erb
 +++ b/app/views/shared/_settings_nav.html.erb
-@@ -40,7 +40,7 @@
-               <%= link_to t('storage'), settings_storage_index_path, class: 'text-base hover:bg-base-300' %>
+@@ -43,7 +43,7 @@
+               <%= link_to t('storage'), settings_storage_index_path, class: 'text-base hover:bg-base-300', data: nav_link_data %>
              </li>
            <% end %>
--          <% if can?(:read, EncryptedConfig.new(key: 'submitter_invitation_sms', account: current_account)) && true_user == current_user %>
-+          <% if !DocusealSso.hide_sms_menu? && can?(:read, EncryptedConfig.new(key: 'submitter_invitation_sms', account: current_account)) && true_user == current_user %>
+-          <% if can?(:read, EncryptedConfig.new(key: 'submitter_invitation_sms', account: current_account)) && true_user == current_user && (!turbo_native_ios? || can?(:manage, :sms_verification)) %>
++          <% if !DocusealSso.hide_sms_menu? && can?(:read, EncryptedConfig.new(key: 'submitter_invitation_sms', account: current_account)) && true_user == current_user && (!turbo_native_ios? || can?(:manage, :sms_verification)) %>
              <li>
-               <%= link_to 'SMS', settings_sms_path, class: 'text-base hover:bg-base-300' %>
+               <%= link_to 'SMS', settings_sms_path, class: 'text-base hover:bg-base-300', data: nav_link_data %>
              </li>
-@@ -61,7 +61,7 @@
-             <%= link_to t('personalization'), settings_personalization_path, class: 'text-base hover:bg-base-300' %>
+@@ -64,7 +64,7 @@
+             <%= link_to t('personalization'), settings_personalization_path, class: 'text-base hover:bg-base-300', data: nav_link_data %>
            </li>
          <% end %>
 -        <% if can?(:read, User) %>
 +        <% if can?(:read, User.new(account: current_account)) %>
            <li>
-             <%= link_to t('users'), settings_users_path, class: 'text-base hover:bg-base-300' %>
+             <%= link_to t('users'), settings_users_path, class: 'text-base hover:bg-base-300', data: nav_link_data %>
            </li>
-@@ -81,7 +81,7 @@
+@@ -84,7 +84,7 @@
              </li>
            <% end %>
          <% end %>
--        <% if !Docuseal.demo? && can?(:manage, EncryptedConfig) && (current_user != true_user || !current_account.linked_account_account) %>
-+        <% if !DocusealSso.hide_plans_menu? && !Docuseal.demo? && can?(:manage, EncryptedConfig) && (current_user != true_user || !current_account.linked_account_account) %>
+-        <% if !Docuseal.demo? && !turbo_native_ios? && can?(:manage, EncryptedConfig) && (current_user != true_user || !current_account.linked_account_account) %>
++        <% if !DocusealSso.hide_plans_menu? && !Docuseal.demo? && !turbo_native_ios? && can?(:manage, EncryptedConfig) && (current_user != true_user || !current_account.linked_account_account) %>
            <li>
              <%= content_for(:pro_link) || link_to(Docuseal.multitenant? ? console_redirect_index_path(redir: "#{Docuseal::CONSOLE_URL}/plans") : "#{Docuseal::CLOUD_URL}/sign_up?#{{ redir: "#{Docuseal::CONSOLE_URL}/on_premises" }.to_query}", class: 'text-base hover:bg-base-300', data: { turbo: false }) do %>
                <%= t('plans') %>
-@@ -90,19 +90,21 @@
+@@ -93,21 +93,21 @@
            </li>
          <% end %>
          <% if !Docuseal.demo? && can?(:manage, EncryptedConfig) && (current_user == true_user || current_account.testing?) %>
--          <li>
--            <%= link_to Docuseal.multitenant? ? console_redirect_index_path(redir: "#{Docuseal::CONSOLE_URL}#{'/test' if current_account.testing?}/api") : "#{Docuseal::CONSOLE_URL}/on_premises", class: 'text-base hover:bg-base-300', data: { turbo: false } do %>
--              <% if Docuseal.multitenant? %> API <% else %> <%= t('console') %> <% end %>
--            <% end %>
--          </li>
--          <% if Docuseal.multitenant? %>
-+          <% unless DocusealSso.hide_console_menu? %>
+-          <% if Docuseal.multitenant? || !turbo_native_ios? %>
++          <% if !DocusealSso.hide_console_menu? && (Docuseal.multitenant? || !turbo_native_ios?) %>
              <li>
--              <%= link_to console_redirect_index_path(redir: "#{Docuseal::CONSOLE_URL}#{'/test' if current_account.testing?}/embedding/form"), class: 'text-base hover:bg-base-300', data: { turbo: false } do %>
--                <%= t('embedding') %>
-+              <%= link_to Docuseal.multitenant? ? console_redirect_index_path(redir: "#{Docuseal::CONSOLE_URL}#{'/test' if current_account.testing?}/api") : "#{Docuseal::CONSOLE_URL}/on_premises", class: 'text-base hover:bg-base-300', data: { turbo: false } do %>
-+                <% if Docuseal.multitenant? %> API <% else %> <%= t('console') %> <% end %>
+               <%= link_to Docuseal.multitenant? ? console_redirect_index_path(redir: "#{Docuseal::CONSOLE_URL}#{'/test' if current_account.testing?}/api") : "#{Docuseal::CONSOLE_URL}/on_premises", class: 'text-base hover:bg-base-300', data: { turbo: false } do %>
+                 <% if Docuseal.multitenant? %> API <% else %> <%= t('console') %> <% end %>
                <% end %>
              </li>
-+            <% if Docuseal.multitenant? %>
-+              <li>
-+                <%= link_to console_redirect_index_path(redir: "#{Docuseal::CONSOLE_URL}#{'/test' if current_account.testing?}/embedding/form"), class: 'text-base hover:bg-base-300', data: { turbo: false } do %>
-+                  <%= t('embedding') %>
-+                <% end %>
-+              </li>
-+            <% end %>
            <% end %>
--          <% if (!Docuseal.multitenant? || can?(:manage, :saml_sso)) && can?(:read, EncryptedConfig.new(key: 'saml_configs', account: current_account)) && true_user == current_user %>
-+          <% if !DocusealSso.hide_sso_menu? && (!Docuseal.multitenant? || can?(:manage, :saml_sso)) && can?(:read, EncryptedConfig.new(key: 'saml_configs', account: current_account)) && true_user == current_user %>
+-          <% if Docuseal.multitenant? %>
++          <% if !DocusealSso.hide_console_menu? && Docuseal.multitenant? %>
              <li>
-               <%= link_to 'SSO', settings_sso_index_path, class: 'text-base hover:bg-base-300' %>
+               <%= link_to console_redirect_index_path(redir: "#{Docuseal::CONSOLE_URL}#{'/test' if current_account.testing?}/embedding/form"), class: 'text-base hover:bg-base-300', data: { turbo: false } do %>
+                 <%= t('embedding') %>
+               <% end %>
+             </li>
+           <% end %>
+-          <% if (!Docuseal.multitenant? || can?(:manage, :saml_sso)) && can?(:read, EncryptedConfig.new(key: 'saml_configs', account: current_account)) && true_user == current_user && (!turbo_native_ios? || can?(:manage, :saml_sso)) %>
++          <% if !DocusealSso.hide_sso_menu? && (!Docuseal.multitenant? || can?(:manage, :saml_sso)) && can?(:read, EncryptedConfig.new(key: 'saml_configs', account: current_account)) && true_user == current_user && (!turbo_native_ios? || can?(:manage, :saml_sso)) %>
+             <li>
+               <%= link_to 'SSO', settings_sso_index_path, class: 'text-base hover:bg-base-300', data: nav_link_data %>
              </li>

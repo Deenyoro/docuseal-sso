@@ -14,8 +14,15 @@
 module ForceSsoPasswordLoginBlock
   def create
     if DocusealSso.force_sso_active?
-      redirect_to(new_user_session_path,
-                  alert: I18n.t('force_sso_disable_login_with_email_and_password'))
+      message = I18n.t('force_sso_disable_login_with_email_and_password')
+
+      # Upstream SessionsController also answers JSON sign-in requests (native
+      # app); reject those with an error payload instead of a redirect.
+      if request.format.json?
+        render json: { error: message }, status: :unprocessable_content
+      else
+        redirect_to(new_user_session_path, alert: message)
+      end
       return
     end
     super
