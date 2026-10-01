@@ -1,47 +1,95 @@
 diff --git a/app/views/users/index.html.erb b/app/views/users/index.html.erb
-index 33e7eb2c..5075ae0f 100644
+index 224379fc..d98fe1d7 100644
 --- a/app/views/users/index.html.erb
 +++ b/app/views/users/index.html.erb
-@@ -47,6 +47,9 @@
-             <th>
-               <%= t('role') %>
-             </th>
-+            <th>
-+              <%= t('status') %>
-+            </th>
-             <th>
-               <%= t('last_session') %>
-             </th>
-@@ -74,10 +77,32 @@
-                   <%= t(user.role) %>
-                 </span>
-               </td>
-+              <td>
-+                <% case user.invitation_status %>
-+                <% when :accepted %>
-+                  <span class="badge badge-success badge-outline whitespace-nowrap">
-+                    <%= t('accepted') %>
-+                  </span>
-+                <% when :pending %>
-+                  <span class="badge badge-warning badge-outline whitespace-nowrap"
-+                        title="<%= t('invitation_expires_at', time: l(user.invitation_expires_at.in_time_zone(current_account.timezone), format: :short, locale: current_account.locale)) %>">
-+                    <%= t('invitation_pending') %>
-+                  </span>
-+                <% when :expired %>
-+                  <span class="badge badge-error badge-outline whitespace-nowrap">
-+                    <%= t('invitation_expired') %>
-+                  </span>
+@@ -45,6 +45,7 @@
+         <% can_edit = params[:status].blank? && can?(:update, user) && user.archived_at.blank? %>
+         <% can_remove = params[:status] != 'archived' && can?(:destroy, user) && user != current_user %>
+         <% can_unarchive = params[:status] == 'archived' && can?(:create, user) && user != current_user && user.archived_at? %>
++        <% can_resend = params[:status].blank? && can?(:manage, user) && user != current_user && user.archived_at.blank? && user.invitation_status != :accepted && Accounts.can_send_emails?(current_account) %>
+         <div class="flex items-center gap-3 py-4">
+           <span class="flex items-center justify-center w-10 h-10 rounded-full bg-base-300 text-sm">
+             <%= user.initials.presence || user.email.first.upcase %>
+@@ -53,6 +54,12 @@
+             <div class="flex items-center gap-2">
+               <span class="font-semibold truncate"><%= user.full_name.presence || user.email %></span>
+               <span class="badge badge-info badge-outline badge-sm whitespace-nowrap shrink-0"><%= t(user.role) %></span>
++              <% case user.invitation_status %>
++              <% when :pending %>
++                <span class="badge badge-warning badge-outline badge-sm whitespace-nowrap shrink-0"><%= t('invitation_pending') %></span>
++              <% when :expired %>
++                <span class="badge badge-error badge-outline badge-sm whitespace-nowrap shrink-0"><%= t('invitation_expired') %></span>
++              <% end %>
+             </div>
+             <% if user.try(:pending_reconfirmation?) %>
+               <div class="text-sm text-base-content/70 truncate"><%= user.unconfirmed_email %> (<%= t('unconfirmed') %>)</div>
+@@ -60,7 +67,7 @@
+               <div class="text-sm text-base-content/70 truncate"><%= user.email %></div>
+             <% end %>
+           </div>
+-          <% if can_edit || can_remove || can_unarchive %>
++          <% if can_edit || can_remove || can_unarchive || can_resend %>
+             <native-menu class="<%= 'dropdown dropdown-end' unless turbo_native_app? %>">
+               <label tabindex="0" aria-label="<%= t('more') %>" class="btn btn-ghost btn-circle btn-sm">
+                 <%= svg_icon('dots_vertical', class: 'w-5 h-5') %>
+@@ -76,6 +83,17 @@
+                     </native-menu-action>
+                   </li>
+                 <% end %>
++                <% if can_resend %>
++                  <li>
++                    <native-menu-action data-icon="send" data-label="<%= t('resend_invitation') %>" class="grid-cols-1 p-0">
++                      <button form="<%= dom_id(user, :resend_invitation) %>" class="flex items-center gap-2 px-4 py-2 w-full" data-turbo-confirm="<%= t('are_you_sure_') %>">
++                        <%= svg_icon('send', class: 'w-5 h-5 flex-shrink-0') %>
++                        <span><%= t('resend_invitation') %></span>
++                      </button>
++                      <%= button_to '', user_send_reset_password_path(user), method: :put, form: { id: dom_id(user, :resend_invitation) }, form_class: 'hidden' %>
++                    </native-menu-action>
++                  </li>
 +                <% end %>
-+              </td>
-               <td>
-                 <%= user.current_sign_in_at ? l(user.current_sign_in_at.in_time_zone(current_account.timezone), format: :short, locale: current_account.locale) : '-' %>
-               </td>
-               <td class="flex items-center space-x-2 justify-end">
-+                <% if params[:status].blank? && can?(:manage, user) && user != current_user && user.archived_at.blank? && user.invitation_status != :accepted && Accounts.can_send_emails?(current_account) %>
-+                  <%= button_to user_send_reset_password_path(user), method: :put, class: 'btn btn-outline btn-xs', title: t('resend_invitation'), data: { turbo_confirm: t('are_you_sure_') } do %>
-+                    <%= t('resend_invitation') %>
+                 <% if can_remove %>
+                   <li>
+                     <native-menu-action data-icon="trash" data-label="<%= t('remove') %>" data-destructive="true" class="grid-cols-1 p-0">
+@@ -118,6 +136,9 @@
+               <th>
+                 <%= t('role') %>
+               </th>
++              <th>
++                <%= t('status') %>
++              </th>
+               <th>
+                 <%= t('last_session') %>
+               </th>
+@@ -145,10 +166,32 @@
+                     <%= t(user.role) %>
+                   </span>
+                 </td>
++                <td>
++                  <% case user.invitation_status %>
++                  <% when :accepted %>
++                    <span class="badge badge-success badge-outline whitespace-nowrap">
++                      <%= t('accepted') %>
++                    </span>
++                  <% when :pending %>
++                    <span class="badge badge-warning badge-outline whitespace-nowrap"
++                          title="<%= t('invitation_expires_at', time: l(user.invitation_expires_at.in_time_zone(current_account.timezone), format: :short, locale: current_account.locale)) %>">
++                      <%= t('invitation_pending') %>
++                    </span>
++                  <% when :expired %>
++                    <span class="badge badge-error badge-outline whitespace-nowrap">
++                      <%= t('invitation_expired') %>
++                    </span>
 +                  <% end %>
-+                <% end %>
-                 <% if params[:status].blank? && can?(:update, user) && user.archived_at.blank? %>
-                   <%= link_to edit_user_path(user), class: 'btn btn-outline btn-xs', title: t('edit'), data: { turbo_frame: 'modal' } do %>
-                     <%= t('edit') %>
++                </td>
+                 <td>
+                   <%= user.current_sign_in_at ? l(user.current_sign_in_at.in_time_zone(current_account.timezone), format: :short, locale: current_account.locale) : '-' %>
+                 </td>
+                 <td class="flex items-center space-x-2 justify-end">
++                  <% if params[:status].blank? && can?(:manage, user) && user != current_user && user.archived_at.blank? && user.invitation_status != :accepted && Accounts.can_send_emails?(current_account) %>
++                    <%= button_to user_send_reset_password_path(user), method: :put, class: 'btn btn-outline btn-xs', title: t('resend_invitation'), data: { turbo_confirm: t('are_you_sure_') } do %>
++                      <%= t('resend_invitation') %>
++                    <% end %>
++                  <% end %>
+                   <% if params[:status].blank? && can?(:update, user) && user.archived_at.blank? %>
+                     <%= link_to edit_user_path(user), class: 'btn btn-outline btn-xs', title: t('edit'), data: { turbo_frame: 'modal' } do %>
+                       <%= t('edit') %>

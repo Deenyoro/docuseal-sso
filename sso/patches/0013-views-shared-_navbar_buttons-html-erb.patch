@@ -1,5 +1,5 @@
 diff --git a/app/views/shared/_navbar_buttons.html.erb b/app/views/shared/_navbar_buttons.html.erb
-index f8692699..35d6e8f0 100644
+index 056f3397..73895d5b 100644
 --- a/app/views/shared/_navbar_buttons.html.erb
 +++ b/app/views/shared/_navbar_buttons.html.erb
 @@ -1,6 +1,6 @@
@@ -7,6 +7,6 @@ index f8692699..35d6e8f0 100644
    <%= render 'shared/test_alert' %>
 -<% elsif request.path.starts_with?('/settings') %>
 +<% elsif request.path.starts_with?('/settings') && !DocusealSso.hide_upgrade_button? %>
-   <%= link_to "#{Docuseal::CLOUD_URL}/sign_up?#{{ redir: "#{Docuseal::CONSOLE_URL}/on_premises" }.to_query}", class: 'hidden md:inline-flex btn btn-warning btn-sm', data: { prefetch: false } do %>
+   <%= link_to "#{Docuseal::CLOUD_URL}/sign_up?#{{ redir: "#{Docuseal::CONSOLE_URL}/on_premises" }.to_query}", class: 'hidden md:inline-flex btn btn-warning btn-sm', data: { turbo_prefetch: false } do %>
      <%= t('upgrade') %>
    <% end %>
