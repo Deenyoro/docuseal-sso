@@ -1,17 +1,19 @@
 diff --git a/app/views/submissions/_send_sms.html.erb b/app/views/submissions/_send_sms.html.erb
-index 92a8de54..5294f6ca 100644
+index 598b3a88..33646231 100644
 --- a/app/views/submissions/_send_sms.html.erb
 +++ b/app/views/submissions/_send_sms.html.erb
-@@ -1,4 +1,11 @@
+@@ -1,4 +1,13 @@
 -<% unless turbo_native_ios? %>
 +<% if defined?(SmsConfigs) && SmsConfigs.configured?(current_account) %>
-+  <div class="form-control">
-+    <%= f.label :send_sms, for: uuid = SecureRandom.uuid, class: 'flex items-center cursor-pointer' do %>
-+      <%= f.check_box :send_sms, id: uuid, class: 'base-checkbox', checked: local_assigns[:checked] == true %>
-+      <span class="label"><%= local_assigns[:resend_sms] ? t('re_send_sms') : t('send_sms') %></span>
-+    <% end %>
-+  </div>
++  <toggle-on-checked data-names="is_custom_message" class="block">
++    <div class="form-control">
++      <%= f.label :send_sms, for: uuid = SecureRandom.uuid, class: 'flex items-center cursor-pointer' do %>
++        <%= f.check_box :send_sms, id: uuid, class: 'base-checkbox', checked: local_assigns[:checked] == true %>
++        <span class="label"><%= local_assigns[:resend_sms] ? t('re_send_sms') : t('send_sms') %></span>
++      <% end %>
++    </div>
++  </toggle-on-checked>
 +<% elsif !turbo_native_ios? %>
-   <div class="form-control">
-     <%= render 'sms_settings/placeholder' %>
-   </div>
+   <toggle-on-checked data-names="is_custom_message" class="block">
+     <div class="form-control">
+       <%= render 'sms_settings/placeholder' %>
