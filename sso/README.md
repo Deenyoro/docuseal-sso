@@ -146,6 +146,14 @@ changes. Then re-apply the change by hand and regenerate:
 git diff -- <file> > sso/patches/<NNNN-name>.patch   # from a tree with the change applied
 ```
 
+## Releases
+
+The image is built by GitLab CI (`.gitlab-ci.yml`). `sso/VERSION` holds the
+version as `<upstream version>-sso.<n>`, and `sso/CHANGELOG.md` explains the
+scheme. To release, bump `sso/VERSION`, add a CHANGELOG section, commit, and
+push an annotated `v<version>` tag. The tag pipeline publishes
+`ghcr.io/deenyoro/docuseal-sso:v<version>` and creates the GitLab release.
+
 ## Local build & run
 
 ```bash
