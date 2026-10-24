@@ -1,5 +1,5 @@
 diff --git a/app/views/shared/_settings_nav.html.erb b/app/views/shared/_settings_nav.html.erb
-index ae8e9d29..f66bc4a8 100644
+index 0dc5a83e..4e368c46 100644
 --- a/app/views/shared/_settings_nav.html.erb
 +++ b/app/views/shared/_settings_nav.html.erb
 @@ -43,7 +43,7 @@
@@ -33,16 +33,16 @@ index ae8e9d29..f66bc4a8 100644
            </li>
          <% end %>
          <% if !Docuseal.demo? && can?(:manage, EncryptedConfig) && (current_user == true_user || current_account.testing?) %>
--          <% if Docuseal.multitenant? || !turbo_native_ios? %>
-+          <% if !DocusealSso.hide_console_menu? && (Docuseal.multitenant? || !turbo_native_ios?) %>
+-          <% unless turbo_native_app? %>
++          <% if !DocusealSso.hide_console_menu? && !turbo_native_app? %>
              <li>
                <%= link_to Docuseal.multitenant? ? console_redirect_index_path(redir: "#{Docuseal::CONSOLE_URL}#{'/test' if current_account.testing?}/api") : "#{Docuseal::CONSOLE_URL}/on_premises", class: 'text-base hover:bg-base-300', data: { turbo: false } do %>
                  <% if Docuseal.multitenant? %> API <% else %> <%= t('console') %> <% end %>
                <% end %>
              </li>
            <% end %>
--          <% if Docuseal.multitenant? %>
-+          <% if !DocusealSso.hide_console_menu? && Docuseal.multitenant? %>
+-          <% if Docuseal.multitenant? && !turbo_native_app? %>
++          <% if !DocusealSso.hide_console_menu? && Docuseal.multitenant? && !turbo_native_app? %>
              <li>
                <%= link_to console_redirect_index_path(redir: "#{Docuseal::CONSOLE_URL}#{'/test' if current_account.testing?}/embedding/form"), class: 'text-base hover:bg-base-300', data: { turbo: false } do %>
                  <%= t('embedding') %>
