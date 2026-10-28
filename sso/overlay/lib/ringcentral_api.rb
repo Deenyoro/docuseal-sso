@@ -22,6 +22,21 @@ class RingcentralApi
     @client_secret = client_secret
     @jwt_token = jwt_token
     @server_url = server_url.presence || DEFAULT_SERVER_URL
+
+    # The client secret and JWT are posted to this URL, so it must be RingCentral.
+    raise ApiError, "Server URL must be an https://*.ringcentral.com address" unless self.class.allowed_server_url?(@server_url)
+  end
+
+  # Only https RingCentral hosts (platform.ringcentral.com,
+  # platform.devtest.ringcentral.com, ...) on the default port, no credentials.
+  def self.allowed_server_url?(url)
+    uri = URI.parse(url.to_s.strip)
+    host = uri.host.to_s.downcase
+
+    uri.is_a?(URI::HTTPS) && uri.userinfo.nil? && uri.port == 443 &&
+      (host == 'ringcentral.com' || host.end_with?('.ringcentral.com'))
+  rescue URI::InvalidURIError
+    false
   end
 
   # POST /restapi/v1.0/account/~/extension/~/sms

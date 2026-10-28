@@ -16,6 +16,7 @@ en:
     save_and_verify: Save & verify
     remove_connector: Remove connector
     missing_credentials: Enter the RingCentral client ID, client secret and JWT credential.
+    invalid_server_url: The RingCentral server URL must be an https://*.ringcentral.com address.
     verified_pick_number: RingCentral verified — now pick the number to send from.
     connector_saved: RingCentral connector verified and saved.
     verification_failed: RingCentral verification failed

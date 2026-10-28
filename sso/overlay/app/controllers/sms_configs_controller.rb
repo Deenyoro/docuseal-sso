@@ -23,6 +23,10 @@ class SmsConfigsController < ApplicationController
       return redirect_to settings_sms_index_path, alert: I18n.t('sso_sms.missing_credentials')
     end
 
+    if value['server_url'].present? && !RingcentralApi.allowed_server_url?(value['server_url'])
+      return redirect_to settings_sms_index_path, alert: I18n.t('sso_sms.invalid_server_url')
+    end
+
     api = RingcentralApi.new(client_id: value['client_id'],
                              client_secret: value['client_secret'],
                              jwt_token: value['jwt_token'],
