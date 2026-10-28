@@ -116,7 +116,9 @@ class ProcessSubmitterRemindersJob
       reminder_number = duration_info[:number]
       duration = duration_info[:duration]
 
-      next if sent_reminders.include?(reminder_number)
+      # A later reminder already went out (only the latest due one is sent),
+      # so earlier ones are covered and must not follow it.
+      next if sent_reminders.any? { |sent| sent.to_i >= reminder_number }
 
       # Check if it's time to send this reminder
       reminder_time = submitter.sent_at + duration
