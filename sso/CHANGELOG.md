@@ -6,6 +6,21 @@ top of it and starts again at 1 with each new upstream release. Each release is
 tagged `v<version>` and the image is published as
 `ghcr.io/deenyoro/docuseal-sso:v<version>`.
 
+## 3.3.3-sso.3 — 2026-10-28
+
+- SSO: a SAML response can only be used to sign in once. Accepted assertion
+  IDs are stored (new `saml_assertion_uses` table, created automatically at
+  start-up) until the assertion expires, and a re-posted response is refused.
+  Sign-in started from Authentik (app tiles) still works.
+- SSO: after Single Logout, DocuSeal no longer redirects to whatever address
+  the `RelayState` parameter names. Only DocuSeal's own pages and the IdP
+  logout URL's host are allowed; anything else goes to the home page.
+- Force SSO: invitation links no longer let a new user set a password and sign
+  in with it. They send the user to the sign-in page, where SSO signs them in.
+- SMS: the RingCentral server URL must be an `https://*.ringcentral.com`
+  address, so the RingCentral credentials cannot be sent to another server.
+- The overlay script now also copies `sso/overlay/db/` (for the new table).
+
 ## 3.3.3-sso.2 — 2026-10-28
 
 - Email reminders: when two reminder times passed between hourly checks (for
