@@ -78,6 +78,33 @@ module SamlConfigs
     }.compact
   end
 
+  # True when an SLO RelayState may be redirected to: a local path, or an
+  # absolute http(s) URL on this app's origin or on the IdP logout URL's origin.
+  def safe_relay_state?(value, idp_slo_service_url = nil)
+    value = value.to_s
+    return false if value.blank?
+    return value.match?(%r{\A/(?![/\\])[^\x00-\x20\\]*\z}) if value.start_with?('/')
+    return false if value.match?(/[\x00-\x20\\]/)
+
+    uri = URI.parse(value)
+    return false unless uri.is_a?(URI::HTTP) && uri.host.present?
+
+    [base_url, idp_slo_service_url].compact_blank.any? { |allowed| same_origin?(uri, allowed) }
+  rescue URI::InvalidURIError
+    false
+  end
+
+  def same_origin?(uri, other)
+    other = URI.parse(other.to_s)
+
+    other.is_a?(URI::HTTP) &&
+      uri.scheme.casecmp?(other.scheme) &&
+      uri.host.casecmp?(other.host.to_s) &&
+      uri.port == other.port
+  rescue URI::InvalidURIError
+    false
+  end
+
   # --- URL helpers -----------------------------------------------------------
   # Derived from the real Devise route (which lives at /auth/saml/* because
   # devise_for uses path: '/'), so they stay correct regardless of routing.

@@ -11,6 +11,7 @@ module Users
       account = SamlConfigs.account_for
 
       return reject(I18n.t('single_sign_on_is_not_configured')) if account.blank?
+      return reject(I18n.t('single_sign_on_failed')) unless claim_assertion(auth)
 
       email = extract_email(auth)
       return reject(I18n.t('the_sso_response_did_not_include_an_email')) if email.blank?
@@ -33,6 +34,14 @@ module Users
 
     def reject(message)
       redirect_to new_user_session_path, alert: message
+    end
+
+    # Each signed assertion signs in once. IdP-initiated logins (no
+    # AuthnRequest to match) keep working; a re-posted response does not.
+    def claim_assertion(auth)
+      response = auth&.extra&.response_object
+
+      SamlAssertionUse.claim(response&.assertion_id, response&.not_on_or_after)
     end
 
     def extract_email(auth)

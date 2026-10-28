@@ -41,7 +41,7 @@ check_collisions() {
   done < <(find "${src_dir}" -type f ! -name '.gitkeep' -print0)
 }
 
-OVERLAY_DIRS="app lib config"
+OVERLAY_DIRS="app lib config db"
 
 for dir in ${OVERLAY_DIRS}; do
   if [ -d "${OVERLAY_ROOT}/${dir}" ]; then

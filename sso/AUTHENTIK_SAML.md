@@ -10,6 +10,13 @@ is the **Service Provider (SP)**; Authentik is the **Identity Provider (IdP)**.
   response is signature-verified (no cert ⇒ no validation ⇒ forgeable).
 - The OmniAuth request phase is CSRF-protected (`omniauth-rails_csrf_protection`).
 - JIT-provisioned users default to a **non-admin** role and only when you opt in.
+- Each signed assertion can sign in only once (IDs are remembered until the
+  assertion expires), so a captured SAML response cannot be replayed.
+  IdP-initiated logins (Authentik app tiles) still work.
+- After Single Logout, DocuSeal only redirects to its own pages or to the IdP
+  logout URL's host, never to an arbitrary `RelayState`.
+- With **Force SSO** on, invitation links no longer set a password: invited
+  users sign in with SSO (matched by email).
 
 ## 1. In DocuSeal — read the SP values
 Sign in as an admin → **Settings → SSO**. The page shows:

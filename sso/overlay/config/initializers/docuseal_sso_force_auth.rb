@@ -52,6 +52,31 @@ module ForceSsoPasswordResetBlock
   end
 end
 
+# Invitation links (InvitationsController < Devise::PasswordsController, so not
+# covered above) let a new user choose a password and sign in with it. Under
+# forced SSO the invited user signs in through the IdP instead: the account
+# keeps the random password UsersController#create gave it, and the SAML
+# callback matches it by email.
+module ForceSsoInvitationBlock
+  def edit
+    return force_sso_redirect if DocusealSso.force_sso_active?
+
+    super
+  end
+
+  def update
+    return force_sso_redirect if DocusealSso.force_sso_active?
+
+    super
+  end
+
+  private
+
+  def force_sso_redirect
+    redirect_to(new_user_session_path, notice: I18n.t('your_account_is_ready_sign_in_with_sso'))
+  end
+end
+
 Rails.application.config.to_prepare do
   if defined?(SessionsController) && !(SessionsController <= ForceSsoPasswordLoginBlock)
     SessionsController.prepend(ForceSsoPasswordLoginBlock)
@@ -59,5 +84,9 @@ Rails.application.config.to_prepare do
 
   if defined?(PasswordsController) && !(PasswordsController <= ForceSsoPasswordResetBlock)
     PasswordsController.prepend(ForceSsoPasswordResetBlock)
+  end
+
+  if defined?(InvitationsController) && !(InvitationsController <= ForceSsoInvitationBlock)
+    InvitationsController.prepend(ForceSsoInvitationBlock)
   end
 end

@@ -31,6 +31,21 @@ if defined?(OmniAuth::Strategies::SAML)
       end
     )
   end
+
+  # omniauth-saml redirects to the RelayState request parameter after Single
+  # Logout (/auth/saml/slo and /auth/saml/spslo) without checking it, which is
+  # an open redirect. Only same-origin paths/URLs and the IdP logout URL's
+  # origin are allowed; anything else goes to the app root.
+  module SamlSafeSloRelayState
+    private
+
+    def slo_relay_state
+      state = super
+      SamlConfigs.safe_relay_state?(state, options[:idp_slo_service_url]) ? state : '/'
+    end
+  end
+
+  OmniAuth::Strategies::SAML.prepend(SamlSafeSloRelayState)
 else
   Rails.logger.warn('omniauth-saml not loaded; SAML SSO disabled')
 end

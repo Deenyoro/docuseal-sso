@@ -12,6 +12,11 @@ config/routes.rb::omniauth_callbacks
 config/initializers/omniauth_saml.rb::SAML
 app/views/devise/sessions/_omniauthable.html.erb::sign_in_with_sso
 app/views/devise/sessions/new.html.erb::force_sso_active?
+app/controllers/users/omniauth_callbacks_controller.rb::claim_assertion
+db/migrate/20261028120000_create_saml_assertion_uses.rb::saml_assertion_uses
+config/initializers/omniauth_saml.rb::SamlSafeSloRelayState
+config/initializers/docuseal_sso_force_auth.rb::ForceSsoInvitationBlock
+lib/ringcentral_api.rb::allowed_server_url?
 
 # --- SSO settings page (the prod-500 area) ---
 config/routes.rb::delete :destroy, on: :collection
