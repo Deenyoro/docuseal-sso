@@ -6,6 +6,16 @@ top of it and starts again at 1 with each new upstream release. Each release is
 tagged `v<version>` and the image is published as
 `ghcr.io/deenyoro/docuseal-sso:v<version>`.
 
+## 3.3.3-sso.2 — 2026-10-28
+
+- Email reminders: when two reminder times passed between hourly checks (for
+  example after downtime), only the later reminder was sent, but the earlier
+  one then went out an hour later, after it. An earlier reminder is now
+  treated as covered once a later one has been sent.
+- Email reminders: a reminder that was still queued or retrying when the next
+  hourly check ran could be queued again and emailed twice. Each reminder is
+  now sent at most once per signer.
+
 ## 3.3.3-sso.1 — 2026-10-24
 
 - Synced to upstream DocuSeal 3.3.3 (previous image was built on 3.3.2).
