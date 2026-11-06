@@ -1,9 +1,9 @@
 diff --git a/app/views/submissions/_send_sms.html.erb b/app/views/submissions/_send_sms.html.erb
-index 598b3a88..33646231 100644
+index fa24b59c..866fbc8d 100644
 --- a/app/views/submissions/_send_sms.html.erb
 +++ b/app/views/submissions/_send_sms.html.erb
 @@ -1,4 +1,13 @@
--<% unless turbo_native_ios? %>
+-<% unless turbo_native_app? %>
 +<% if defined?(SmsConfigs) && SmsConfigs.configured?(current_account) %>
 +  <toggle-on-checked data-names="is_custom_message" class="block">
 +    <div class="form-control">
@@ -13,7 +13,7 @@ index 598b3a88..33646231 100644
 +      <% end %>
 +    </div>
 +  </toggle-on-checked>
-+<% elsif !turbo_native_ios? %>
++<% elsif !turbo_native_app? %>
    <toggle-on-checked data-names="is_custom_message" class="block">
      <div class="form-control">
        <%= render 'sms_settings/placeholder' %>

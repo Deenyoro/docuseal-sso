@@ -1,14 +1,14 @@
 diff --git a/app/views/submissions/_send_sms_button.html.erb b/app/views/submissions/_send_sms_button.html.erb
-index 26d90f80..a52f54c3 100644
+index 7e18fed0..33b756c4 100644
 --- a/app/views/submissions/_send_sms_button.html.erb
 +++ b/app/views/submissions/_send_sms_button.html.erb
 @@ -1,4 +1,8 @@
--<% unless turbo_native_ios? %>
+-<% unless turbo_native_app? %>
 +<% if defined?(SmsConfigs) && SmsConfigs.configured?(current_account) %>
 +  <div class="mt-2 mb-1">
 +    <%= button_to button_title(title: submitter.sent_at? ? t('re_send_sms') : t('send_sms'), disabled_with: t('sending')), submitter_send_sms_index_path(submitter), class: 'btn btn-sm btn-primary w-full' %>
 +  </div>
-+<% elsif !turbo_native_ios? %>
++<% elsif !turbo_native_app? %>
    <div class="mt-2 mb-1">
      <div class="tooltip tooltip-no-touch w-full" data-tip="<%= t('unlock_with_docuseal_pro') %>">
        <%= link_to submitter.sent_at? ? t('re_send_sms') : t('send_sms'), Docuseal.multitenant? ? console_redirect_index_path(redir: "#{Docuseal::CONSOLE_URL}/plans") : "#{Docuseal::CLOUD_URL}/sign_up?#{{ redir: "#{Docuseal::CONSOLE_URL}/on_premises" }.to_query}", class: 'btn btn-sm btn-primary text-gray-400 w-full' %>

@@ -1,5 +1,5 @@
 diff --git a/app/views/users/_role_select.html.erb b/app/views/users/_role_select.html.erb
-index dde2cacc..55b48e15 100644
+index d3fa1029..55b48e15 100644
 --- a/app/views/users/_role_select.html.erb
 +++ b/app/views/users/_role_select.html.erb
 @@ -1,22 +1,11 @@
@@ -17,7 +17,7 @@ index dde2cacc..55b48e15 100644
 -      </span>
 -    </label>
 -  <% end %>
--  <% unless turbo_native_ios? %>
+-  <% unless turbo_native_app? %>
 -    <a class="text-sm mt-3 px-4 py-2 bg-base-300 rounded-full block" target="_blank" href="<%= Docuseal.multitenant? ? console_redirect_index_path(redir: "#{Docuseal::CONSOLE_URL}/plans") : "#{Docuseal::CLOUD_URL}/sign_up?#{{ redir: "#{Docuseal::CONSOLE_URL}/on_premises" }.to_query}" %>">
 -      <%= svg_icon('info_circle', class: 'w-4 h-4 inline align-text-bottom') %>
 -      <%= t('unlock_more_user_roles_with_docuseal_pro') %>
