@@ -1,5 +1,5 @@
 diff --git a/app/views/submit_form/_docuseal_logo.html.erb b/app/views/submit_form/_docuseal_logo.html.erb
-index 645f7fc5..3e988a28 100644
+index 645f7fc5..d9938898 100644
 --- a/app/views/submit_form/_docuseal_logo.html.erb
 +++ b/app/views/submit_form/_docuseal_logo.html.erb
 @@ -1,4 +1,12 @@
@@ -10,7 +10,7 @@ index 645f7fc5..3e988a28 100644
 +<% account = local_assigns[:account] || @submitter&.account %>
 +<% if account&.logo&.attached? %>
 +  <a href="<%= root_path %>" class="mx-auto text-2xl md:text-3xl font-bold items-center flex space-x-3">
-+    <%= image_tag account.logo, class: 'w-9 h-9 md:w-12 md:h-12 object-contain' %>
++    <%= image_tag ActiveStorage::Blob.proxy_path(account.logo.blob), class: 'w-9 h-9 md:w-12 md:h-12 object-contain' %>
 +    <span><%= account.name %></span>
 +  </a>
 +<% else %>

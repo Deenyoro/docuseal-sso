@@ -37,6 +37,13 @@ app/views/shared/_settings_nav.html.erb::hide_console_menu?
 
 # --- RingCentral SMS ---
 config/routes.rb::account_logo
+# Upstream turned off ActiveStorage route drawing (draw_routes = false), so
+# image_tag(attachment) / rails_blob_url raise. Logos must go through upstream's
+# own blobs proxy (it allows attachment name "logo" without auth).
+app/views/personalization_settings/_logo_form.html.erb::Blob.proxy_path(current_account.logo.blob)
+app/views/start_form/_docuseal_logo.html.erb::Blob.proxy_path(account.logo.blob)
+app/views/submit_form/_docuseal_logo.html.erb::Blob.proxy_path(account.logo.blob)
+lib/docuseal_pro/account_logo.rb::Blob.proxy_url(logo.blob)
 app/views/submissions/_send_sms_button.html.erb::SmsConfigs
 app/views/sms_settings/index.html.erb::ringcentral_form
 lib/sms_configs.rb::module SmsConfigs

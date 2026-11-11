@@ -18,7 +18,9 @@ module DocusealPro
     def logo_url
       return nil unless logo.attached?
 
-      Rails.application.routes.url_helpers.rails_blob_url(logo, **Docuseal.default_url_options)
+      # Upstream sets active_storage.draw_routes = false, so the Rails blob
+      # route helpers do not exist; use upstream's own blobs proxy instead.
+      ActiveStorage::Blob.proxy_url(logo.blob)
     end
 
     # Get a resized variant for display (optional, for on-the-fly resizing)
