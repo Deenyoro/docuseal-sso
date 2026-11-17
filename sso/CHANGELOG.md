@@ -6,6 +6,25 @@ top of it and starts again at 1 with each new upstream release. Each release is
 tagged `v<version>` and the image is published as
 `ghcr.io/deenyoro/docuseal-sso:v<version>`.
 
+## 3.3.7-sso.1 — 2026-11-17
+
+- Synced to upstream DocuSeal 3.3.7 (the last tagged release was built on
+  3.3.3; the running image was built on 3.3.6). The 3.3.7 step is 22 upstream
+  commits: `{{submission.<variable>}}` in email texts, a zip size limit, time
+  zone validation, a fix for removing an account twice, files served by the blobs proxy no
+  longer cached by browsers, and form and template builder fixes. No database
+  migrations.
+- No overlay change was needed for 3.3.7: all 27 patches apply exactly, the
+  upstream fingerprints are present and all 30 overlay assertions pass on the
+  assembled tree.
+- Since 3.3.3-sso.3, released as dated images without a version tag:
+  - 3.3.5: upstream renamed `turbo_native_ios?` to `turbo_native_app?`; the
+    settings menu, role select and both send-SMS patches were re-anchored.
+  - 3.3.6: the user model patch (cannot remove the last admin) was re-anchored
+    on upstream's new email validation line.
+  - 3.3.6: account logos are served through upstream's blobs proxy, because
+    upstream stopped drawing the Active Storage routes the logo views used.
+
 ## 3.3.3-sso.3 — 2026-10-28
 
 - SSO: a SAML response can only be used to sign in once. Accepted assertion
