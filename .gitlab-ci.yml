@@ -1,4 +1,4 @@
-# DocuSeal SSO fork image, built on GitLab and mirrored to GHCR.
+# DocuSeal SSO fork image, built on GitLab and published to the GitLab registry only.
 #
 # Ported from .github/workflows/docuseal-sso-build.yml. The GitHub job also
 # disabled upstream workflows and pushed refreshed patches back to the repo;
@@ -100,13 +100,6 @@ build:
         docker tag docuseal-sso:candidate "$CI_REGISTRY_IMAGE:$t"
         docker push "$CI_REGISTRY_IMAGE:$t"
       done
-      if [ -n "$GHCR_TOKEN" ]; then
-        echo "$GHCR_TOKEN" | docker login -u "${GHCR_USER:-Deenyoro}" --password-stdin ghcr.io
-        for t in $(cat .tags); do
-          docker tag docuseal-sso:candidate "ghcr.io/${GHCR_OWNER:-deenyoro}/docuseal-sso:$t"
-          docker push "ghcr.io/${GHCR_OWNER:-deenyoro}/docuseal-sso:$t"
-        done
-      fi
       echo "Published: $(cat .tags)"
 
 # On a v* tag, create (or update) the GitLab release for it. Notes are the
@@ -127,7 +120,7 @@ release:
       API="$CI_API_V4_URL/projects/$CI_PROJECT_ID"; H="JOB-TOKEN: $CI_JOB_TOKEN"
       NOTES=$(awk -v v="## $VERSION " 'index($0, v) == 1 {on=1; next} /^## / && on {exit} on' sso/CHANGELOG.md)
       [ -n "$NOTES" ] || { echo "sso/CHANGELOG.md has no section for $VERSION"; exit 1; }
-      DESC=$(printf '%s\n\n**Images**\n\n- `ghcr.io/deenyoro/docuseal-sso:%s`\n- `%s:%s`\n' "$NOTES" "$CI_COMMIT_TAG" "$CI_REGISTRY_IMAGE" "$CI_COMMIT_TAG")
+      DESC=$(printf '%s\n\n**Image**\n\n- `%s:%s`\n' "$NOTES" "$CI_REGISTRY_IMAGE" "$CI_COMMIT_TAG")
       BODY=$(jq -cn --arg tag "$CI_COMMIT_TAG" --arg name "DocuSeal SSO $VERSION" --arg desc "$DESC" '{tag_name:$tag, name:$name, description:$desc}')
       if curl -fsS -o /dev/null -H "$H" "$API/releases/$CI_COMMIT_TAG" 2>/dev/null; then
         curl -fsS -X PUT -H "$H" -H "Content-Type: application/json" "$API/releases/$CI_COMMIT_TAG" -d "$BODY" | jq -r '"updated release " + .tag_name'
