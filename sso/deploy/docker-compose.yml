@@ -9,7 +9,7 @@
 
 services:
   app:
-    image: ${DOCUSEAL_SSO_IMAGE:-ghcr.io/deenyoro/docuseal-sso:latest}
+    image: ${DOCUSEAL_SSO_IMAGE:-gitlabreg.kawa.link/dean/docuseal-sso:latest}
     container_name: docuseal-sso
     depends_on:
       postgres:

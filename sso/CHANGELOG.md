@@ -4,7 +4,7 @@ Versions are `<upstream DocuSeal version>-sso.<n>`. The first part is the
 upstream release the fork is built on; `n` counts the fork's own releases on
 top of it and starts again at 1 with each new upstream release. Each release is
 tagged `v<version>` and the image is published as
-`ghcr.io/deenyoro/docuseal-sso:v<version>`.
+`gitlabreg.kawa.link/dean/docuseal-sso:v<version>`.
 
 ## 3.3.7-sso.1 — 2026-11-17
 

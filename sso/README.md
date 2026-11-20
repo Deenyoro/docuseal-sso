@@ -39,7 +39,7 @@ Feature code ported from
 
 ## How the build works
 
-CI (`.github/workflows/docuseal-sso-build.yml`) applies the overlay to the
+CI (`.gitlab-ci.yml`) applies the overlay to the
 checkout and then builds with **upstream's own Dockerfile** — there is no
 forked Dockerfile to drift when upstream changes base images, dependencies or
 download sources:
@@ -134,7 +134,7 @@ By hand, if you want to drive it yourself:
 git remote add upstream https://github.com/docusealco/docuseal.git   # once
 git fetch upstream
 git merge upstream/master        # or use GitHub's "Sync fork" button
-git push                         # triggers .github/workflows/docuseal-sso-build.yml
+git push                         # the default-branch pipeline rebuilds the image
 ```
 
 Patch drift after a sync is normally **self-healed by CI** (`heal-patches.sh`
@@ -152,7 +152,7 @@ The image is built by GitLab CI (`.gitlab-ci.yml`). `sso/VERSION` holds the
 version as `<upstream version>-sso.<n>`, and `sso/CHANGELOG.md` explains the
 scheme. To release, bump `sso/VERSION`, add a CHANGELOG section, commit, and
 push an annotated `v<version>` tag. The tag pipeline publishes
-`ghcr.io/deenyoro/docuseal-sso:v<version>` and creates the GitLab release.
+`gitlabreg.kawa.link/dean/docuseal-sso:v<version>` and creates the GitLab release.
 
 ## Local build & run
 
