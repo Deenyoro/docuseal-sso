@@ -11,7 +11,6 @@ module Api
     before_action :set_noindex_headers
     before_action :set_security_headers
 
-    # rubocop:disable-next Metrics
     def show
       blob_uuid, purp, exp = ApplicationRecord.signed_id_verifier.verified(params[:signed_uuid])
 
@@ -42,7 +41,11 @@ module Api
 
       authorization_check!(attachment, @record, exp)
 
-      no_store
+      if attachment.name == 'logo'
+        expires_in 100.years, public: true, immutable: true
+      else
+        no_store
+      end
 
       if request.headers['Range'].present?
         send_blob_byte_range_data blob, request.headers['Range']

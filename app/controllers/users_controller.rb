@@ -3,8 +3,8 @@
 class UsersController < ApplicationController
   load_and_authorize_resource :user, only: %i[index edit update destroy]
 
-  before_action :build_user, only: %i[new create]
-  authorize_resource :user, only: %i[new create]
+  before_action :build_user, only: :create
+  authorize_resource :user, only: :create
 
   def index
     @users =
@@ -32,6 +32,10 @@ class UsersController < ApplicationController
   end
 
   def new
+    @user = current_account.users.new
+
+    authorize!(:create, @user)
+
     render layout: turbo_native_app? ? 'plain' : true
   end
 
@@ -72,8 +76,9 @@ class UsersController < ApplicationController
 
     attrs = user_params.compact_blank
     attrs = attrs.merge(user_params.slice(:archived_at)) if current_ability.can?(:create, @user)
+    attrs = attrs.slice(:archived_at) if @user.role == 'integration'
 
-    if params.dig(:user, :account_id).present?
+    if params.dig(:user, :account_id).present? && @user.role != 'integration'
       account = Account.accessible_by(current_ability).find(params.dig(:user, :account_id))
 
       authorize!(:manage, account)
