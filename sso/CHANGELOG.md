@@ -6,6 +6,18 @@ top of it and starts again at 1 with each new upstream release. Each release is
 tagged `v<version>` and the image is published as
 `gitlabreg.kawa.link/dean/docuseal-sso:v<version>`.
 
+## 3.4.0-sso.1 (2026-11-24)
+
+- Synced to upstream DocuSeal 3.4.0 (23 upstream commits since 3.3.7): Ruby
+  4.0.10 base image, dependency updates, certificate password and email
+  validation, formula size cap, a new `templates (account_id, id)` index
+  migration, integration users can no longer be moved between accounts or
+  edited beyond archiving, and Puma 7 hook names in the embedded Sidekiq plugin.
+- No overlay change was needed: all 27 patches apply exactly (including the
+  three on files upstream changed: users controller, submitter completion job,
+  embedded Sidekiq plugin), upstream fingerprints 7/7, and all 30 overlay
+  assertions pass on the assembled tree.
+
 ## 3.3.7-sso.1 — 2026-11-17
 
 - Synced to upstream DocuSeal 3.3.7 (the last tagged release was built on
